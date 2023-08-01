@@ -12,6 +12,6 @@ setuptools.setup(
     url="https://github.com/herreio/slubfind",
     packages=["slubfind"],
     install_requires=[
-        'txpyfind @ git+https://github.com/herreio/txpyfind#egg=txpyfind'
+        'txpyfind @ git+ssh://git@github.com/herreio/txpyfind.git#egg=txpyfind'
     ],
 )
