@@ -56,8 +56,8 @@ class SlubFind(Find):
 
     def settings(self, query="qqqqq", qtype="default", facet={}, page=0, count=0, sort="", type_num=None):
         result = self.get_query(query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="json-all", type_num=type_num)
-        if isinstance(result, dict) and "settings" in result:
-            return result["settings"]
+        if isinstance(result.raw, dict) and "settings" in result.raw:
+            return result.raw["settings"]
 
     def solr_params(self, query="slub", qtype="default", facet={}, page=0, count=0, sort="", type_num=None):
         url = self.url_query(query=query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="raw-solr-response", type_num=type_num)
