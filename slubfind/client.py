@@ -1,6 +1,7 @@
 import re
 from txpyfind import utils
 from txpyfind.client import Find
+from txpyfind.parser import JSONResponse
 
 from .parser import AppDetails
 
@@ -51,11 +52,11 @@ class SlubFind(Find):
     def app_details(self, document_id, type_num=None):
         return self.get_document(document_id, data_format="app", type_num=type_num, parser_class=AppDetails)
 
-    def app_search(self, query, qtype="default", facet={}, page=0, count=0, sort="", type_num=None):
-        return self.get_query(query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="app", type_num=type_num)
+    def app_search(self, query, qtype="default", facet={}, page=0, count=0, sort="", type_num=None, parser_class=JSONResponse):
+        return self.get_query(query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="app", type_num=type_num, parser_class=parser_class)
 
-    def settings(self, query="qqqqq", qtype="default", facet={}, page=0, count=0, sort="", type_num=None):
-        result = self.get_query(query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="json-all", type_num=type_num)
+    def settings(self, query="qqqqq", qtype="default", facet={}, page=0, count=0, sort="", type_num=None, parser_class=JSONResponse):
+        result = self.get_query(query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="json-all", type_num=type_num, parser_class=parser_class)
         if isinstance(result.raw, dict) and "settings" in result.raw:
             return result.raw["settings"]
 
