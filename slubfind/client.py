@@ -21,7 +21,8 @@ class SlubFind(Find):
                      "rvk_facet",
                      "signatur",
                      "imprint",
-                     "series2"
+                     "series2",
+                     "provenance"
                      ],
                  facets=[
                      "facet_avail",
@@ -29,11 +30,14 @@ class SlubFind(Find):
                      "publishDateSort",
                      "branch_collcode",
                      "branch",
+                     "license",
+                     "access_state",
                      "language",
                      "thema",
                      "author",
                      "facet_music_notation_de14",
                      "music_heading_browse",
+                     "provenance",
                      "mega_collection"
                      ],
                  count_limit=1000,
