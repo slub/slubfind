@@ -1,4 +1,5 @@
 import re
+import json
 from txpyfind import utils
 from txpyfind.client import Find
 from txpyfind.parser import JSONResponse
@@ -61,15 +62,21 @@ class SlubFind(Find):
     def app_search(self, query, qtype="default", facet={}, page=0, count=0, sort="", type_num=None, parser_class=None):
         return self.get_query(query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="app", type_num=type_num, parser_class=parser_class)
 
-    def settings(self, query="qqqqq", qtype="default", facet={}, page=0, count=0, sort="", type_num=None, parser_class=None):
-        result = self.get_query(query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="json-all", type_num=type_num, parser_class=parser_class)
-        if isinstance(result.raw, dict) and "settings" in result.raw:
+    def settings(self):
+        result = self.get_query("qqqqq", qtype="default", facet={}, page=0, count=0, sort="", data_format="json-all", type_num=None, parser_class=None)
+        if hasattr(result, "raw") and isinstance(result.raw, dict) and "settings" in result.raw:
             return result.raw["settings"]
 
-    def solr_params(self, query="slub", qtype="default", facet={}, page=0, count=0, sort="", type_num=None):
-        url = self.url_query(query=query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="raw-solr-response", type_num=type_num)
+    def solr_params(self, query, qtype="default", facet={}, page=0, count=0, sort="", type_num=None):
+        url = self.url_query(query=query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="json-solr-params", type_num=type_num)
         url = utils.add_tx_param(url, "omitHeader", "false")
-        result = utils.json_request(url)
-        if isinstance(result, dict) and "responseHeader" in result:
-            if isinstance(result["responseHeader"], dict) and "params" in result["responseHeader"]:
-                return result["responseHeader"]["params"]
+        response = utils.json_request(url)
+        if isinstance(response, dict):
+            return response
+
+    def solr_request(self, query, qtype="default", facet={}, page=0, count=0, sort="", type_num=None):
+        url = self.url_query(query=query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="json-solr-request", type_num=type_num)
+        url = utils.add_tx_param(url, "debug", "1")
+        response = utils.json_request(url)
+        if isinstance(response, dict) and "url" in response:
+            return response["url"]
