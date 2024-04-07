@@ -1,5 +1,4 @@
 import re
-import json
 from txpyfind import utils
 from txpyfind.client import Find
 from txpyfind.parser import JSONResponse
