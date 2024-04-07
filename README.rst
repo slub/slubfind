@@ -29,4 +29,10 @@ Usage Example
 
 .. code-block:: python
 
-   import slubfind
+   from slubfind.client import SlubFind
+   # create SlubFind instance
+   slub_find = SlubFind()
+   # retrieve JSON data (detail view, default format)
+   slub_doc = slub_find.get_document("0-1132486122")
+   # retrieve JSON data (query view, default format)
+   slub_q = slub_find.get_query("manfred bonitz")
