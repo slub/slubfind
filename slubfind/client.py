@@ -2,6 +2,7 @@ import re
 from txpyfind import utils
 from txpyfind.client import Find
 from txpyfind.parser import JSONResponse
+from txpyfind.urlparse import URLParser
 
 from .parser import AppDetails
 
@@ -73,6 +74,11 @@ class SlubFind(Find):
         response = utils.json_request(url)
         if isinstance(response, dict):
             return response
+
+    def solr_params_via_url(self, url, type_num=None):
+        url = URLParser(url)
+        if url.ok:
+            return self.solr_params(url.query, qtype=url.qtype, facet=url.facets, page=url.page, count=url.count, sort=url.sort, type_num=type_num)
 
     def solr_request(self, query, qtype="default", facet={}, page=0, count=0, sort="", type_num=None):
         url = self.url_query(query=query, qtype=qtype, facet=facet, page=page, count=count, sort=sort, data_format="json-solr-request", type_num=type_num)
