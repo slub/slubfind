@@ -1,1 +1,1 @@
--e git+ssh://git@github.com/herreio/txpyfind.git@83d9f741b3daa58b60aa49675c69306e5d22ddac#egg=txpyfind
+-e git+ssh://git@github.com/herreio/txpyfind.git@89f382fff49e90a5de6e78d5b937cbaf66030f0f#egg=txpyfind
