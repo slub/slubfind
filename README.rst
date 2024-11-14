@@ -2,27 +2,28 @@
 slubfind
 ========
 
-With ``slubfind`` you can query data exports from the SLUB catalogue in Python.
+With ``slubfind`` you can query data exports from the `SLUB catalogue <https://www.slub-dresden.de>`_
+in Python.
 
-This package is based on `txpyfind <https://github.com/herreio/txpyfind>`_,
-which enables access to data exports from TYPO3-find.
+This package is based on `txpyfind <https://github.com/slub/txpyfind>`_,
+which enables access to data exports from `TYPO3-find <https://github.com/subugoe/typo3-find>`_.
 
 Installation
 ============
 
-... via SSH
+... via PyPI
 ~~~~~~~~~~~
 
 .. code-block:: bash
 
-   pip install -e git+ssh://git@github.com/herreio/slubfind.git#egg=slubfind
+   pip install slubfind
 
-... or via HTTPS
+... or from Github source
 ~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
-   pip install -e git+https://github.com/herreio/slubfind.git#egg=slubfind
+   pip install git+https://github.com/slub/slubfind.git
 
 
 Usage Example
