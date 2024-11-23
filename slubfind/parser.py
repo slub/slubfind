@@ -1,12 +1,12 @@
 """
-Parser module of ``slubfind`` 
+parser module of ``slubfind`` 
 """
 from txpyfind.parser import JSONResponse
 
 
 class AppDetails(JSONResponse):
     """
-    AppDetails class of ``slubfind``
+    ``AppDetails`` class from ``slubfind.parser`` module
     """
 
     def __init__(

@@ -1,5 +1,5 @@
 """
-Client module of ``slubfind`` package
+client module of ``slubfind`` package
 """
 import re
 from txpyfind import utils
@@ -12,7 +12,7 @@ from .parser import AppDetails
 
 class SlubFind(Find):
     """
-    SlubFind class of ``slubfind`` package
+    ``SlubFind`` class from ``slubfind.client`` module
     """
 
     def __init__(
