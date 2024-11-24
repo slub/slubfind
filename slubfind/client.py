@@ -17,10 +17,10 @@ class SlubFind(Find):
 
     def __init__(
             self,
-            base_url = "https://katalog.slub-dresden.de",
-            export_format = "app",
-            export_page = 1369315142,
-            parser_class = JSONResponse):
+            base_url="https://katalog.slub-dresden.de",
+            export_format="app",
+            export_page=1369315142,
+            parser_class=JSONResponse):
         super().__init__(
             base_url,
             document_path="id",
@@ -63,7 +63,7 @@ class SlubFind(Find):
     def app_details(
             self,
             document_id,
-            type_num = None):
+            type_num=None):
         """
         fetch details view in app format
         """
@@ -76,13 +76,13 @@ class SlubFind(Find):
     def app_search(
             self,
             query,
-            qtype = "default",
-            facet = None,
-            page = 0,
-            count = 0,
-            sort = "",
-            type_num = None,
-            parser_class = None):
+            qtype="default",
+            facet=None,
+            page=0,
+            count=0,
+            sort="",
+            type_num=None,
+            parser_class=None):
         """
         fetch query view in app format
         """
@@ -118,12 +118,12 @@ class SlubFind(Find):
     def solr_params(
             self,
             query,
-            qtype = "default",
-            facet = None,
-            page = 0,
-            count = 0,
-            sort = "",
-            type_num = None):
+            qtype="default",
+            facet=None,
+            page=0,
+            count=0,
+            sort="",
+            type_num=None):
         """
         get the parameters used for the Solr request
         """
@@ -145,7 +145,7 @@ class SlubFind(Find):
     def solr_params_via_url(
             self,
             url,
-            type_num = None):
+            type_num=None):
         """
         get the parameters used for the Solr request via given TYPO3-find URL
         """
@@ -164,12 +164,12 @@ class SlubFind(Find):
     def solr_request(
             self,
             query,
-            qtype = "default",
-            facet = None,
-            page = 0,
-            count = 0,
-            sort = "",
-            type_num = None):
+            qtype="default",
+            facet=None,
+            page=0,
+            count=0,
+            sort="",
+            type_num=None):
         """
         get the URL of the Solr request
         """
