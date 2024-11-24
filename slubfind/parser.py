@@ -1,5 +1,5 @@
 """
-parser module of ``slubfind`` 
+parser module of ``slubfind``
 """
 from txpyfind.parser import JSONResponse
 
