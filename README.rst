@@ -2,7 +2,7 @@
 slubfind
 ========
 
-With ``slubfind`` you can query data exports from the `SLUB catalogue <https://www.slub-dresden.de>`_
+With ``slubfind`` you can query data exports from the `SLUB catalogue <https://katalog.slub-dresden.de>`_
 in Python.
 
 This package is based on `txpyfind <https://github.com/slub/txpyfind>`_,
