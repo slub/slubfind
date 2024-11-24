@@ -60,12 +60,12 @@ class SlubFind(Find):
             export_page=export_page,
             parser_class=parser_class)
 
-    def app_details(
+    def app_document(
             self,
             document_id,
             type_num=None):
         """
-        fetch details view in app format
+        fetch detail view in app format
         """
         return self.get_document(
             document_id,

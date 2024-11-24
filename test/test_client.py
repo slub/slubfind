@@ -4,7 +4,7 @@ def test_get_document():
     # create SlubFind instance
     slub_find = SlubFind()
     # retrieve JSON data (detail view, app format)
-    slub_app_doc = slub_find.app_details("0-1132486122")
+    slub_app_doc = slub_find.app_document("0-1132486122")
     assert slub_app_doc is not None
 
 def test_get_query():
