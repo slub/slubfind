@@ -5,7 +5,6 @@ import re
 from txpyfind import utils
 from txpyfind.client import Find
 from txpyfind.parser import JSONResponse
-from txpyfind.urlparse import URLParser
 
 from .parser import AppDetails
 
@@ -149,7 +148,7 @@ class SlubFind(Find):
         """
         get the parameters used for the Solr request via given TYPO3-find URL
         """
-        url = URLParser(url)
+        url = self.url_parser(url)
         if url.is_ok:
             return self.solr_params(
                 url.query,
