@@ -1,0 +1,42 @@
+[build-system]
+requires = [
+         "setuptools>=42",
+         "setuptools_scm[toml]",
+         "wheel",
+]  # PEP 508 specifications.
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slubfind"
+description = "query data exports from the SLUB catalogue"
+readme = "README.rst"
+authors = [
+        {name = "Donatus Herre"},
+        {email = "donatus.herre@slub-dresden.de"}
+]
+license = {text = "GPLv3"}
+keywords = []
+classifiers = [
+            "Programming Language :: Python :: 3",
+            "Operating System :: OS Independent",
+            "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+            "Development Status :: 3 - Alpha",
+            "Intended Audience :: Developers",
+            "Intended Audience :: Education",
+            "Intended Audience :: Science/Research",
+            "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dynamic = ["version", "dependencies"]
+requires-python = ">=3.7"
+
+[project.urls]
+homepage = "https://github.com/slub/slubfind"
+
+[project.scripts]
+#slubfind = "slubfind.cli:cli"
+
+[tool.setuptools.dynamic]
+dependencies = {file = ["requirements.txt"]}
+
+[tool.setuptools_scm]
+write_to = "slubfind/_version.py"
