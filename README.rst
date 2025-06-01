@@ -12,14 +12,14 @@ Installation
 ============
 
 ... via PyPI
-~~~~~~~~~~~
+~~~~~~~~~~~~
 
 .. code-block:: bash
 
    pip install slubfind
 
 ... or from Github source
-~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
