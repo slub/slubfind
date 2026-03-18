@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "slubfind"
-description = "query data exports from the SLUB catalogue"
+description = "query data exports from the SLUB catalog"
 readme = "README.rst"
 authors = [
         {name = "Donatus Herre"},
@@ -33,7 +33,7 @@ requires-python = ">=3.7"
 homepage = "https://github.com/slub/slubfind"
 
 [project.scripts]
-#slubfind = "slubfind.cli:cli"
+slubfind = "slubfind.cli:main"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

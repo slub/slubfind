@@ -1,3 +1,8 @@
+1.0.0 [2026-03-19]
+- Add command-line interface (query, document, scroll, settings, solr-params, solr-request)
+- Add --show-url flag to print request URL without fetching
+- Align facet handling with txpyfind v1.1.0
+
 0.1.0 [2025-06-01]
 - first published release
 
