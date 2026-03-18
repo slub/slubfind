@@ -2,7 +2,7 @@
 slubfind
 ========
 
-With ``slubfind`` you can query data exports from the `SLUB catalogue <https://katalog.slub-dresden.de>`_
+With ``slubfind`` you can query data exports from the `SLUB catalog <https://katalog.slub-dresden.de>`_
 in Python.
 
 This package is based on `txpyfind <https://github.com/slub/txpyfind>`_,
@@ -26,8 +26,102 @@ Installation
    pip install git+https://github.com/slub/slubfind.git
 
 
-Usage Example
-=============
+Command-Line Usage
+==================
+
+After installation, the ``slubfind`` command is available (also via ``python -m slubfind``).
+The base URL defaults to ``https://katalog.slub-dresden.de``.
+
+Query
+~~~~~
+
+Execute a search query in app format:
+
+.. code-block:: bash
+
+   slubfind query "manfred bonitz"
+
+With facet filters and pagination:
+
+.. code-block:: bash
+
+   slubfind query "python" --facet format_de14=Book --page 1 --count 10
+
+Document
+~~~~~~~~
+
+Fetch a single document by ID in app format:
+
+.. code-block:: bash
+
+   slubfind document "0-1132486122"
+
+Scroll
+~~~~~~
+
+Fetch all results for a query:
+
+.. code-block:: bash
+
+   slubfind scroll "manfred bonitz" --batch 10
+
+Stream results as JSONL (one JSON object per line), useful for piping:
+
+.. code-block:: bash
+
+   slubfind scroll "manfred bonitz" --stream | jq .id
+
+Settings
+~~~~~~~~
+
+Show TYPO3-find settings:
+
+.. code-block:: bash
+
+   slubfind settings
+
+Solr Parameters
+~~~~~~~~~~~~~~~
+
+Show Solr parameters for a query:
+
+.. code-block:: bash
+
+   slubfind solr-params "manfred bonitz"
+
+Solr Request
+~~~~~~~~~~~~
+
+Show Solr request URL for a query:
+
+.. code-block:: bash
+
+   slubfind solr-request "manfred bonitz"
+
+Show Request URL
+~~~~~~~~~~~~~~~~
+
+Use ``--show-url`` to print the request URL instead of fetching the response.
+This works with all subcommands:
+
+.. code-block:: bash
+
+   slubfind --show-url query "python" --facet "format_de14=Book, E-Book"
+   slubfind --show-url document "0-1132486122"
+   slubfind --show-url scroll "python" --batch 10
+
+Environment Variable
+~~~~~~~~~~~~~~~~~~~~
+
+Set ``SLUBFIND_URL`` to override the default base URL:
+
+.. code-block:: bash
+
+   export SLUBFIND_URL=https://katalog.slub-dresden.de
+   slubfind query "manfred bonitz"
+
+Python Usage Example
+====================
 
 .. code-block:: python
 
