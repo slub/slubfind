@@ -41,11 +41,11 @@ Execute a search query in app format:
 
    slubfind query "manfred bonitz"
 
-With facet filters and pagination:
+With a facet filter and pagination:
 
 .. code-block:: bash
 
-   slubfind query "python" --facet format_de14=Book --page 1 --count 10
+   slubfind query "python" --facet "format_de14=Book, E-Book" --page 1 --count 10
 
 Document
 ~~~~~~~~
