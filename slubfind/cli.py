@@ -18,7 +18,12 @@ def parse_facet(value):
     if "=" not in value:
         raise argparse.ArgumentTypeError(
             f"facet must be in KEY=VALUE format, got: {value}")
-    return tuple(value.split("=", 1))
+    key, val = value.split("=", 1)
+    if key not in SlubFind.FACETS:
+        valid = ", ".join(SlubFind.FACETS)
+        raise argparse.ArgumentTypeError(
+            f"unknown facet key {key!r}, choose from: {valid}")
+    return key, val
 
 
 def merge_facets(facet_list):
@@ -61,9 +66,9 @@ def build_parser():
         default=1369315142,
         help="export page type number (default: 1369315142)")
     parser.add_argument(
-        "--compact",
+        "--pretty",
         action="store_true",
-        help="compact JSON output (no indentation)")
+        help="pretty-print JSON output (with indentation)")
     parser.add_argument(
         "--show-url",
         action="store_true",
@@ -80,7 +85,8 @@ def build_parser():
         "query", help="search in app format")
     query_parser.add_argument("query", help="search query string")
     query_parser.add_argument(
-        "--type", default="default", help="query type (default: default)")
+        "--type", default="default", choices=SlubFind.QUERY_TYPES,
+        help="query type (default: default)")
     query_parser.add_argument(
         "--facet", action="append", type=parse_facet,
         help="facet filter as KEY=VALUE (repeatable)")
@@ -101,7 +107,8 @@ def build_parser():
         "scroll", help="fetch all paginated results")
     scroll_parser.add_argument("query", help="search query string")
     scroll_parser.add_argument(
-        "--type", default="default", help="query type (default: default)")
+        "--type", default="default", choices=SlubFind.QUERY_TYPES,
+        help="query type (default: default)")
     scroll_parser.add_argument(
         "--facet", action="append", type=parse_facet,
         help="facet filter as KEY=VALUE (repeatable)")
@@ -123,7 +130,8 @@ def build_parser():
         "solr-params", help="show Solr parameters for a query")
     solr_params_parser.add_argument("query", help="search query string")
     solr_params_parser.add_argument(
-        "--type", default="default", help="query type (default: default)")
+        "--type", default="default", choices=SlubFind.QUERY_TYPES,
+        help="query type (default: default)")
     solr_params_parser.add_argument(
         "--facet", action="append", type=parse_facet,
         help="facet filter as KEY=VALUE (repeatable)")
@@ -139,7 +147,8 @@ def build_parser():
         "solr-request", help="show Solr request URL for a query")
     solr_request_parser.add_argument("query", help="search query string")
     solr_request_parser.add_argument(
-        "--type", default="default", help="query type (default: default)")
+        "--type", default="default", choices=SlubFind.QUERY_TYPES,
+        help="query type (default: default)")
     solr_request_parser.add_argument(
         "--facet", action="append", type=parse_facet,
         help="facet filter as KEY=VALUE (repeatable)")
@@ -183,7 +192,7 @@ def cmd_query(find, args):
         print("error: no results", file=sys.stderr)
         return 1
     data = result.raw if hasattr(result, "raw") else result
-    print(json_dumps(data, compact=args.compact))
+    print(json_dumps(data, compact=not args.pretty))
     return 0
 
 
@@ -201,7 +210,7 @@ def cmd_document(find, args):
         print("error: document not found", file=sys.stderr)
         return 1
     data = result.raw if hasattr(result, "raw") else result
-    print(json_dumps(data, compact=args.compact))
+    print(json_dumps(data, compact=not args.pretty))
     return 0
 
 
@@ -222,7 +231,7 @@ def cmd_scroll(find, args):
                 facet=merge_facets(args.facet),
                 batch=args.batch,
                 sort=args.sort):
-            print(json_dumps(doc, compact=args.compact))
+            print(json_dumps(doc, compact=not args.pretty))
         return 0
 
     results = find.scroll_get_query(
@@ -234,7 +243,7 @@ def cmd_scroll(find, args):
     if results is None:
         print("error: no results", file=sys.stderr)
         return 1
-    print(json_dumps(results, compact=args.compact))
+    print(json_dumps(results, compact=not args.pretty))
     return 0
 
 
@@ -244,7 +253,7 @@ def cmd_settings(find, args):
     if result is None:
         print("error: could not retrieve settings", file=sys.stderr)
         return 1
-    print(json_dumps(result, compact=args.compact))
+    print(json_dumps(result, compact=not args.pretty))
     return 0
 
 
@@ -260,7 +269,7 @@ def cmd_solr_params(find, args):
     if result is None:
         print("error: could not retrieve Solr parameters", file=sys.stderr)
         return 1
-    print(json_dumps(result, compact=args.compact))
+    print(json_dumps(result, compact=not args.pretty))
     return 0
 
 
