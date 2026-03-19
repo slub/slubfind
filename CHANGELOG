@@ -1,3 +1,6 @@
+1.2.0 [2026-03-19]
+- Fix pylint issues: too few public methods (R0903), too many arguments (R0913), too many positional arguments (R0917)
+
 1.1.0 [2026-03-19]
 - Make compact JSON output the default; add --pretty flag for indented output
 - Add --type choices and facet key validation to CLI
