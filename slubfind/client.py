@@ -14,6 +14,13 @@ class SlubFind(Find):
     ``SlubFind`` class from ``slubfind.client`` module
     """
 
+    EXPORT_FORMATS = [
+        "app",
+        "json-all",
+        "json-solr-params",
+        "json-solr-request"
+    ]
+
     QUERY_TYPES = [
         "default",
         "author",

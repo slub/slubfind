@@ -59,6 +59,7 @@ def build_parser():
     parser.add_argument(
         "--export-format",
         default="app",
+        choices=SlubFind.EXPORT_FORMATS,
         help="export format (default: app)")
     parser.add_argument(
         "--export-page",
