@@ -44,3 +44,6 @@ dependencies = {file = ["requirements.txt"]}
 
 [tool.setuptools_scm]
 write_to = "slubfind/_version.py"
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
