@@ -1,1 +1,1 @@
-txpyfind>=1.1.0
+txpyfind>=1.2.0
