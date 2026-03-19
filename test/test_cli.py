@@ -69,12 +69,17 @@ def test_merge_facets_empty():
 
 
 def test_merge_facets_single():
-    assert merge_facets([("language", "ger")]) == {"language": "ger"}
+    assert merge_facets([("language", "ger")]) == [{"language": "ger"}]
 
 
 def test_merge_facets_multiple():
     result = merge_facets([("language", "ger"), ("format_de14", "Buch")])
-    assert result == {"language": "ger", "format_de14": "Buch"}
+    assert result == [{"language": "ger"}, {"format_de14": "Buch"}]
+
+
+def test_merge_facets_duplicate_key():
+    result = merge_facets([("language", "ger"), ("language", "eng")])
+    assert result == [{"language": "ger"}, {"language": "eng"}]
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +142,7 @@ def test_cmd_query_with_facet(capsys):
     code = _run(["query", "--facet", "language=ger", "python"], find, capsys)
     assert code == 0
     _, kwargs = find.app_search.call_args
-    assert kwargs["facet"] == {"language": "ger"}
+    assert kwargs["facet"] == [{"language": "ger"}]
 
 
 # ---------------------------------------------------------------------------

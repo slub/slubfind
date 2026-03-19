@@ -27,10 +27,10 @@ def parse_facet(value):
 
 
 def merge_facets(facet_list):
-    """Merge a list of (key, value) tuples into a single dict."""
+    """Convert a list of (key, value) tuples into a list of single-key dicts."""
     if not facet_list:
         return None
-    return dict(facet_list)
+    return [{k: v} for k, v in facet_list]
 
 
 def json_dumps(obj, pretty=False):
