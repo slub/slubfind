@@ -4,7 +4,7 @@ parser module of ``slubfind``
 from txpyfind.parser import JSONResponse
 
 
-class AppDetails(JSONResponse):
+class AppDetails(JSONResponse):  # pylint: disable=R0903
     """
     ``AppDetails`` class from ``slubfind.parser`` module
     """
