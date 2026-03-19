@@ -76,7 +76,7 @@ class SlubFind(Find):
             type_num=type_num,
             parser_class=AppDetails)
 
-    def app_search(
+    def app_search(  # pylint: disable=R0913,R0917
             self,
             query,
             qtype="default",
@@ -118,7 +118,7 @@ class SlubFind(Find):
             return response["settings"]
         return None
 
-    def solr_params(
+    def solr_params(  # pylint: disable=R0913,R0917
             self,
             query,
             qtype="default",
@@ -164,7 +164,7 @@ class SlubFind(Find):
                 type_num=type_num)
         return None
 
-    def solr_request(
+    def solr_request(  # pylint: disable=R0913,R0917
             self,
             query,
             qtype="default",
