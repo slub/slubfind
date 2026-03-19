@@ -33,11 +33,11 @@ def merge_facets(facet_list):
     return dict(facet_list)
 
 
-def json_dumps(obj, compact=False):
+def json_dumps(obj, pretty=False):
     """Serialize object to JSON string."""
-    if compact:
-        return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
-    return json.dumps(obj, ensure_ascii=False, indent=2)
+    if pretty:
+        return json.dumps(obj, ensure_ascii=False, indent=2)
+    return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
 def build_parser():
@@ -193,7 +193,7 @@ def cmd_query(find, args):
         print("error: no results", file=sys.stderr)
         return 1
     data = result.raw if hasattr(result, "raw") else result
-    print(json_dumps(data, compact=not args.pretty))
+    print(json_dumps(data, pretty=args.pretty))
     return 0
 
 
@@ -211,7 +211,7 @@ def cmd_document(find, args):
         print("error: document not found", file=sys.stderr)
         return 1
     data = result.raw if hasattr(result, "raw") else result
-    print(json_dumps(data, compact=not args.pretty))
+    print(json_dumps(data, pretty=args.pretty))
     return 0
 
 
@@ -232,7 +232,7 @@ def cmd_scroll(find, args):
                 facet=merge_facets(args.facet),
                 batch=args.batch,
                 sort=args.sort):
-            print(json_dumps(doc, compact=not args.pretty))
+            print(json_dumps(doc, pretty=args.pretty))
         return 0
 
     results = find.scroll_get_query(
@@ -244,7 +244,7 @@ def cmd_scroll(find, args):
     if results is None:
         print("error: no results", file=sys.stderr)
         return 1
-    print(json_dumps(results, compact=not args.pretty))
+    print(json_dumps(results, pretty=args.pretty))
     return 0
 
 
@@ -254,7 +254,7 @@ def cmd_settings(find, args):
     if result is None:
         print("error: could not retrieve settings", file=sys.stderr)
         return 1
-    print(json_dumps(result, compact=not args.pretty))
+    print(json_dumps(result, pretty=args.pretty))
     return 0
 
 
@@ -270,7 +270,7 @@ def cmd_solr_params(find, args):
     if result is None:
         print("error: could not retrieve Solr parameters", file=sys.stderr)
         return 1
-    print(json_dumps(result, compact=not args.pretty))
+    print(json_dumps(result, pretty=args.pretty))
     return 0
 
 
