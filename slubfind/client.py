@@ -14,6 +14,37 @@ class SlubFind(Find):
     ``SlubFind`` class from ``slubfind.client`` module
     """
 
+    QUERY_TYPES = [
+        "default",
+        "author",
+        "title",
+        "topic",
+        "barcode",
+        "ident",
+        "rvk_facet",
+        "signatur",
+        "imprint",
+        "series2",
+        "provenance"
+    ]
+
+    FACETS = [
+        "facet_avail",
+        "format_de14",
+        "publishDateSort",
+        "branch_collcode",
+        "branch",
+        "license",
+        "access_state",
+        "language",
+        "thema",
+        "author",
+        "facet_music_notation_de14",
+        "music_heading_browse",
+        "provenance",
+        "mega_collection"
+    ]
+
     def __init__(
             self,
             base_url="https://katalog.slub-dresden.de",
@@ -23,35 +54,8 @@ class SlubFind(Find):
         super().__init__(
             base_url,
             document_path="id",
-            query_types=[
-                "default",
-                "author",
-                "title",
-                "topic",
-                "barcode",
-                "ident",
-                "rvk_facet",
-                "signatur",
-                "imprint",
-                "series2",
-                "provenance"
-            ],
-            facets=[
-                "facet_avail",
-                "format_de14",
-                "publishDateSort",
-                "branch_collcode",
-                "branch",
-                "license",
-                "access_state",
-                "language",
-                "thema",
-                "author",
-                "facet_music_notation_de14",
-                "music_heading_browse",
-                "provenance",
-                "mega_collection"
-            ],
+            query_types=self.QUERY_TYPES,
+            facets=self.FACETS,
             count_limit=1000,
             sort_pattern=re.compile(
                 r"^(score|publishDateSort|title_sort|id)[+ ](asc|desc)$"),
