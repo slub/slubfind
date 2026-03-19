@@ -107,7 +107,7 @@ def _run(argv, find_mock, capsys):
 
 def test_cmd_query_success(capsys):
     find = MagicMock()
-    find.app_search.return_value = _make_result({"docs": []})
+    find.get_query.return_value = _make_result({"docs": []})
     code = _run(["query", "python"], find, capsys)
     assert code == 0
     assert '{"docs"' in capsys.readouterr().out
@@ -115,7 +115,7 @@ def test_cmd_query_success(capsys):
 
 def test_cmd_query_pretty(capsys):
     find = MagicMock()
-    find.app_search.return_value = _make_result({"docs": []})
+    find.get_query.return_value = _make_result({"docs": []})
     code = _run(["--pretty", "query", "python"], find, capsys)
     assert code == 0
     assert "\n" in capsys.readouterr().out
@@ -131,17 +131,17 @@ def test_cmd_query_show_url(capsys):
 
 def test_cmd_query_error(capsys):
     find = MagicMock()
-    find.app_search.return_value = None
+    find.get_query.return_value = None
     code = _run(["query", "python"], find, capsys)
     assert code == 1
 
 
 def test_cmd_query_with_facet(capsys):
     find = MagicMock()
-    find.app_search.return_value = _make_result({"docs": []})
+    find.get_query.return_value = _make_result({"docs": []})
     code = _run(["query", "--facet", "language=ger", "python"], find, capsys)
     assert code == 0
-    _, kwargs = find.app_search.call_args
+    _, kwargs = find.get_query.call_args
     assert kwargs["facet"] == [{"language": "ger"}]
 
 
@@ -151,7 +151,7 @@ def test_cmd_query_with_facet(capsys):
 
 def test_cmd_document_success(capsys):
     find = MagicMock()
-    find.app_document.return_value = _make_result({"id": "0-123"})
+    find.get_document.return_value = _make_result({"id": "0-123"})
     code = _run(["document", "0-123"], find, capsys)
     assert code == 0
     assert '"id"' in capsys.readouterr().out
@@ -167,7 +167,7 @@ def test_cmd_document_show_url(capsys):
 
 def test_cmd_document_not_found(capsys):
     find = MagicMock()
-    find.app_document.return_value = None
+    find.get_document.return_value = None
     code = _run(["document", "0-123"], find, capsys)
     assert code == 1
 

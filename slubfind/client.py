@@ -6,7 +6,7 @@ from txpyfind import utils
 from txpyfind.client import Find
 from txpyfind.parser import JSONResponse
 
-from .parser import AppDetails
+from .parser import AppDetails, AppSearch, JsonLdResponse
 
 
 class SlubFind(Find):
@@ -16,6 +16,7 @@ class SlubFind(Find):
 
     EXPORT_FORMATS = [
         "app",
+        "json-ld",
         "json-all",
         "json-solr-params",
         "json-solr-request"
@@ -105,7 +106,44 @@ class SlubFind(Find):
             sort=sort,
             data_format="app",
             type_num=type_num,
-            parser_class=parser_class)
+            parser_class=parser_class or AppSearch)
+
+    def jsonld_document(
+            self,
+            document_id,
+            type_num=None):
+        """
+        fetch detail view in JSON-LD format
+        """
+        return self.get_document(
+            document_id,
+            data_format="json-ld",
+            type_num=type_num,
+            parser_class=JsonLdResponse)
+
+    def jsonld_search(  # pylint: disable=R0913,R0917
+            self,
+            query,
+            qtype="default",
+            facet=None,
+            page=0,
+            count=0,
+            sort="",
+            type_num=None,
+            parser_class=None):
+        """
+        fetch query view in JSON-LD format
+        """
+        return self.get_query(
+            query,
+            qtype=qtype,
+            facet=facet,
+            page=page,
+            count=count,
+            sort=sort,
+            data_format="json-ld",
+            type_num=type_num,
+            parser_class=parser_class or JsonLdResponse)
 
     def settings(self):
         """

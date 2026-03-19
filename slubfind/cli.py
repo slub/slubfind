@@ -182,7 +182,7 @@ def cmd_query(find, args):
             count=args.count,
             sort=args.sort))
         return 0
-    result = find.app_search(
+    result = find.get_query(
         args.query,
         qtype=args.type,
         facet=merge_facets(args.facet),
@@ -206,7 +206,7 @@ def cmd_document(find, args):
             return 1
         print(url)
         return 0
-    result = find.app_document(args.document_id)
+    result = find.get_document(args.document_id)
     if result is None:
         print("error: document not found", file=sys.stderr)
         return 1
