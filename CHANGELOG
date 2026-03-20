@@ -1,3 +1,12 @@
+1.7.0 [2026-03-20]
+- Add AppDetails parsed fields: id, record, title, format, contributor, identifier
+- Add HTML entity unescaping for record dict values
+- Split JsonLdResponse into JsonLdDetails (detail view) and JsonLdSearch (search view)
+- Add JsonLdDetails properties: id, name, author, url, type
+- Add JsonLdDetails.found detection for bare /id/ URLs
+- Fix "Github" → "GitHub" typo in README
+- Add export format and JSON-LD examples to README
+
 1.6.0 [2026-03-20]
 - Add json-ld export format
 - Add AppSearch and JsonLdResponse parser classes
