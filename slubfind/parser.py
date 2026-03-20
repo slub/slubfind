@@ -4,6 +4,39 @@ parser module of ``slubfind``
 from txpyfind.parser import JSONResponse
 
 
+class HoldingStatus(JSONResponse):  # pylint: disable=R0903
+    """
+    Parser for holding status responses.
+
+    Expected structure::
+
+        {
+            "status": ...,
+            "location": "...",
+            "links": [...]
+        }
+    """
+
+    def __init__(self, plain):
+        super().__init__(plain)
+        self.ok = isinstance(self.raw, dict)
+
+    @property
+    def status(self):
+        """Return the status field."""
+        return self.raw.get("status") if self.ok else None
+
+    @property
+    def location(self):
+        """Return the location field."""
+        return self.raw.get("location") if self.ok else None
+
+    @property
+    def links(self):
+        """Return the links field."""
+        return self.raw.get("links") if self.ok else None
+
+
 class AppDetails(JSONResponse):  # pylint: disable=R0903
     """
     Parser for app-format detail view responses.

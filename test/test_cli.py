@@ -52,6 +52,47 @@ def test_parse_facet_unknown_key():
         parse_facet("unknown_key=value")
 
 
+def test_parse_facet_valid_facet_avail():
+    key, val = parse_facet("facet_avail=Online")
+    assert key == "facet_avail"
+    assert val == "Online"
+
+
+def test_parse_facet_invalid_facet_avail():
+    with pytest.raises(argparse.ArgumentTypeError, match="unknown value"):
+        parse_facet("facet_avail=Invalid")
+
+
+def test_parse_facet_unconstrained_accepts_any():
+    key, val = parse_facet("language=ger")
+    assert key == "language"
+    assert val == "ger"
+
+
+def test_parse_facet_all_format_de14_values():
+    from slubfind.client import SlubFind
+    for val in SlubFind.FACET_VALUES["format_de14"]:
+        key, v = parse_facet(f"format_de14={val}")
+        assert key == "format_de14"
+        assert v == val
+
+
+def test_parse_facet_invalid_format_de14():
+    with pytest.raises(argparse.ArgumentTypeError, match="unknown value"):
+        parse_facet("format_de14=Nonexistent")
+
+
+def test_parse_facet_valid_access_state():
+    key, val = parse_facet("access_state=open")
+    assert key == "access_state"
+    assert val == "open"
+
+
+def test_parse_facet_invalid_access_state():
+    with pytest.raises(argparse.ArgumentTypeError, match="unknown value"):
+        parse_facet("access_state=invalid")
+
+
 def test_parse_facet_value_with_equals():
     # value portion may itself contain '='
     key, val = parse_facet("language=a=b")

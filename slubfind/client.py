@@ -6,7 +6,9 @@ from txpyfind import utils
 from txpyfind.client import Find
 from txpyfind.parser import JSONResponse
 
-from .parser import AppDetails, AppSearch, JsonLdDetails, JsonLdSearch
+from .parser import (
+    AppDetails, AppSearch, HoldingStatus, JsonLdDetails, JsonLdSearch
+)
 
 
 class SlubFind(Find):
@@ -17,6 +19,7 @@ class SlubFind(Find):
     EXPORT_FORMATS = [
         "app",
         "json-ld",
+        "json-holding-status",
         "json-all",
         "json-solr-params",
         "json-solr-request"
@@ -35,6 +38,26 @@ class SlubFind(Find):
         "series2",
         "provenance"
     ]
+
+    FACET_VALUES = {
+        "facet_avail": [
+            "Online", "Local", "Free"
+        ],
+        "format_de14": [
+            "Article, E-Article", "Audio", "Book, E-Book", "Braille",
+            "Collection", "Electronic Resource",
+            "Electronic Resource (Data Carrier)",
+            "Electronic Resource (Remote Access)",
+            "Journal, E-Journal", "Kit", "Manuscript", "Map",
+            "Microform", "Musical Score", "Norm", "Standard",
+            "Physical Object", "Proceeding", "Software", "Thesis",
+            "Unknown Format", "Video", "Visual Media", "Website"
+        ],
+        "access_state": [
+            "open", "embargoed", "restricted", "metadata",
+            "closed", "unknown"
+        ],
+    }
 
     FACETS = [
         "facet_avail",
@@ -83,6 +106,19 @@ class SlubFind(Find):
             data_format="app",
             type_num=type_num,
             parser_class=AppDetails)
+
+    def holding_status_document(
+            self,
+            document_id,
+            type_num=None):
+        """
+        fetch holding status for a document
+        """
+        return self.get_document(
+            document_id,
+            data_format="json-holding-status",
+            type_num=type_num,
+            parser_class=HoldingStatus)
 
     def app_search(  # pylint: disable=R0913,R0917
             self,

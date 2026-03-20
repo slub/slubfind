@@ -23,6 +23,12 @@ def parse_facet(value):
         valid = ", ".join(SlubFind.FACETS)
         raise argparse.ArgumentTypeError(
             f"unknown facet key {key!r}, choose from: {valid}")
+    if key in SlubFind.FACET_VALUES:
+        allowed = SlubFind.FACET_VALUES[key]
+        if val not in allowed:
+            raise argparse.ArgumentTypeError(
+                f"unknown value {val!r} for facet {key!r}, "
+                f"choose from: {', '.join(allowed)}")
     return key, val
 
 

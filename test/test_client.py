@@ -9,6 +9,13 @@ def test_get_document():
     assert "id" in result.raw
 
 
+def test_get_holding_status_document():
+    slub_find = SlubFind()
+    result = slub_find.holding_status_document("0-1132486122")
+    assert result is not None
+    assert isinstance(result.raw, dict)
+
+
 def test_get_query():
     slub_find = SlubFind()
     result = slub_find.app_search("manfred bonitz")
