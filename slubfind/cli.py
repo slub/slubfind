@@ -84,7 +84,9 @@ def build_parser():
     # query subcommand
     query_parser = subparsers.add_parser(
         "query", help="search in app format")
-    query_parser.add_argument("query", help="search query string")
+    query_parser.add_argument("query", nargs="?", help="search query string")
+    query_parser.add_argument(
+        "--from-url", help="use a SLUB catalog URL as query source")
     query_parser.add_argument(
         "--type", default="default", choices=SlubFind.QUERY_TYPES,
         help="query type (default: default)")
@@ -106,7 +108,9 @@ def build_parser():
     # scroll subcommand
     scroll_parser = subparsers.add_parser(
         "scroll", help="fetch all paginated results")
-    scroll_parser.add_argument("query", help="search query string")
+    scroll_parser.add_argument("query", nargs="?", help="search query string")
+    scroll_parser.add_argument(
+        "--from-url", help="use a SLUB catalog URL as query source")
     scroll_parser.add_argument(
         "--type", default="default", choices=SlubFind.QUERY_TYPES,
         help="query type (default: default)")
@@ -129,7 +133,10 @@ def build_parser():
     # solr-params subcommand
     solr_params_parser = subparsers.add_parser(
         "solr-params", help="show Solr parameters for a query")
-    solr_params_parser.add_argument("query", help="search query string")
+    solr_params_parser.add_argument(
+        "query", nargs="?", help="search query string")
+    solr_params_parser.add_argument(
+        "--from-url", help="use a SLUB catalog URL as query source")
     solr_params_parser.add_argument(
         "--type", default="default", choices=SlubFind.QUERY_TYPES,
         help="query type (default: default)")
@@ -146,7 +153,10 @@ def build_parser():
     # solr-request subcommand
     solr_request_parser = subparsers.add_parser(
         "solr-request", help="show Solr request URL for a query")
-    solr_request_parser.add_argument("query", help="search query string")
+    solr_request_parser.add_argument(
+        "query", nargs="?", help="search query string")
+    solr_request_parser.add_argument(
+        "--from-url", help="use a SLUB catalog URL as query source")
     solr_request_parser.add_argument(
         "--type", default="default", choices=SlubFind.QUERY_TYPES,
         help="query type (default: default)")
@@ -171,24 +181,53 @@ def make_find(args):
         export_page=args.export_page)
 
 
+def resolve_from_url(find, args):
+    """Resolve --from-url into query parameters on args.
+
+    Returns True on success, False on error. When --from-url is not
+    set, validates that a positional query was provided instead.
+    """
+    if not args.from_url:
+        if args.query is None:
+            print("error: either query or --from-url is required",
+                  file=sys.stderr)
+            return False
+        return True
+    parsed = find.url_parser(args.from_url)
+    if not parsed.is_ok:
+        print("error: could not parse URL", file=sys.stderr)
+        return False
+    args.query = parsed.query
+    args.type = parsed.qtype
+    args.facet = parsed.facets
+    if hasattr(args, "page"):
+        args.page = parsed.page
+    if hasattr(args, "count"):
+        args.count = parsed.count
+    args.sort = parsed.sort
+    return True
+
+
+def query_kwargs(args):
+    """Build keyword arguments for query methods from parsed args."""
+    facet = args.facet if args.from_url else merge_facets(args.facet)
+    kwargs = dict(qtype=args.type, facet=facet, sort=args.sort)
+    if hasattr(args, "page"):
+        kwargs["page"] = args.page
+    if hasattr(args, "count"):
+        kwargs["count"] = args.count
+    return kwargs
+
+
 def cmd_query(find, args):
     """Handle the query subcommand."""
+    if not resolve_from_url(find, args):
+        return 1
+    kwargs = query_kwargs(args)
     if args.show_url:
-        print(find.url_query(
-            args.query,
-            qtype=args.type,
-            facet=merge_facets(args.facet),
-            page=args.page,
-            count=args.count,
-            sort=args.sort))
+        print(find.url_query(args.query, **kwargs))
         return 0
-    result = find.get_query(
-        args.query,
-        qtype=args.type,
-        facet=merge_facets(args.facet),
-        page=args.page,
-        count=args.count,
-        sort=args.sort)
+    result = find.get_query(args.query, **kwargs)
     if result is None:
         print("error: no results", file=sys.stderr)
         return 1
@@ -217,11 +256,14 @@ def cmd_document(find, args):
 
 def cmd_scroll(find, args):
     """Handle the scroll subcommand."""
+    if not resolve_from_url(find, args):
+        return 1
+    facet = args.facet if args.from_url else merge_facets(args.facet)
     if args.show_url:
         print(find.url_query(
             args.query,
             qtype=args.type,
-            facet=merge_facets(args.facet),
+            facet=facet,
             count=args.batch,
             sort=args.sort))
         return 0
@@ -229,7 +271,7 @@ def cmd_scroll(find, args):
         for doc in find.stream_get_query(
                 args.query,
                 qtype=args.type,
-                facet=merge_facets(args.facet),
+                facet=facet,
                 batch=args.batch,
                 sort=args.sort):
             print(json_dumps(doc, pretty=args.pretty))
@@ -238,7 +280,7 @@ def cmd_scroll(find, args):
     results = find.scroll_get_query(
         args.query,
         qtype=args.type,
-        facet=merge_facets(args.facet),
+        facet=facet,
         batch=args.batch,
         sort=args.sort)
     if results is None:
@@ -260,13 +302,10 @@ def cmd_settings(find, args):
 
 def cmd_solr_params(find, args):
     """Handle the solr-params subcommand."""
-    result = find.solr_params(
-        args.query,
-        qtype=args.type,
-        facet=merge_facets(args.facet),
-        page=args.page,
-        count=args.count,
-        sort=args.sort)
+    if not resolve_from_url(find, args):
+        return 1
+    kwargs = query_kwargs(args)
+    result = find.solr_params(args.query, **kwargs)
     if result is None:
         print("error: could not retrieve Solr parameters", file=sys.stderr)
         return 1
@@ -276,13 +315,10 @@ def cmd_solr_params(find, args):
 
 def cmd_solr_request(find, args):
     """Handle the solr-request subcommand."""
-    result = find.solr_request(
-        args.query,
-        qtype=args.type,
-        facet=merge_facets(args.facet),
-        page=args.page,
-        count=args.count,
-        sort=args.sort)
+    if not resolve_from_url(find, args):
+        return 1
+    kwargs = query_kwargs(args)
+    result = find.solr_request(args.query, **kwargs)
     if result is None:
         print("error: could not retrieve Solr request URL", file=sys.stderr)
         return 1

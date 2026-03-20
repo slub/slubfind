@@ -86,11 +86,28 @@ def test_merge_facets_duplicate_key():
 # helpers
 # ---------------------------------------------------------------------------
 
+EXAMPLE_URL = ("https://katalog.slub-dresden.de/"
+               "?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz")
+
+
 def _make_result(raw):
     """Build a mock result object with a .raw attribute."""
     m = MagicMock()
     m.raw = raw
     return m
+
+
+def _mock_url_parser(is_ok=True):
+    """Build a mock URLParser result."""
+    p = MagicMock()
+    p.is_ok = is_ok
+    p.query = "manfred bonitz"
+    p.qtype = "default"
+    p.facets = None
+    p.page = 0
+    p.count = 0
+    p.sort = ""
+    return p
 
 
 def _run(argv, find_mock, capsys):
@@ -270,6 +287,69 @@ def test_cmd_solr_request_error(capsys):
     find.solr_request.return_value = None
     code = _run(["solr-request", "python"], find, capsys)
     assert code == 1
+
+
+# ---------------------------------------------------------------------------
+# --from-url
+# ---------------------------------------------------------------------------
+
+def test_query_from_url(capsys):
+    find = MagicMock()
+    find.url_parser.return_value = _mock_url_parser()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["query", "--from-url", EXAMPLE_URL], find, capsys)
+    assert code == 0
+    assert '"docs"' in capsys.readouterr().out
+
+
+def test_query_from_url_invalid(capsys):
+    find = MagicMock()
+    find.url_parser.return_value = _mock_url_parser(is_ok=False)
+    code = _run(["query", "--from-url", EXAMPLE_URL], find, capsys)
+    assert code == 1
+
+
+def test_query_from_url_show_url(capsys):
+    find = MagicMock()
+    find.url_parser.return_value = _mock_url_parser()
+    find.url_query.return_value = "https://example.com/q"
+    code = _run(
+        ["--show-url", "query", "--from-url", EXAMPLE_URL], find, capsys)
+    assert code == 0
+    assert "https://example.com/q" in capsys.readouterr().out
+
+
+def test_query_no_query_no_from_url(capsys):
+    find = MagicMock()
+    code = _run(["query"], find, capsys)
+    assert code == 1
+
+
+def test_scroll_from_url(capsys):
+    find = MagicMock()
+    find.url_parser.return_value = _mock_url_parser()
+    find.scroll_get_query.return_value = [{"id": "1"}]
+    code = _run(["scroll", "--from-url", EXAMPLE_URL], find, capsys)
+    assert code == 0
+    assert '"id"' in capsys.readouterr().out
+
+
+def test_solr_params_from_url(capsys):
+    find = MagicMock()
+    find.url_parser.return_value = _mock_url_parser()
+    find.solr_params.return_value = {"params": {"q": "manfred bonitz"}}
+    code = _run(["solr-params", "--from-url", EXAMPLE_URL], find, capsys)
+    assert code == 0
+    assert '"params"' in capsys.readouterr().out
+
+
+def test_solr_request_from_url(capsys):
+    find = MagicMock()
+    find.url_parser.return_value = _mock_url_parser()
+    find.solr_request.return_value = "https://solr.example.com/select?q=test"
+    code = _run(["solr-request", "--from-url", EXAMPLE_URL], find, capsys)
+    assert code == 0
+    assert "https://solr.example.com" in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------------------

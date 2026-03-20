@@ -1,3 +1,6 @@
+1.8.0 [2026-03-20]
+- Add --from-url option for query, scroll, solr-params, and solr-request
+
 1.7.0 [2026-03-20]
 - Add AppDetails parsed fields: id, record, title, format, contributor, identifier
 - Add HTML entity unescaping for record dict values
