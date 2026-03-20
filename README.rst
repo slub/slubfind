@@ -98,6 +98,17 @@ Show Solr request URL for a query:
 
    slubfind solr-request "manfred bonitz"
 
+From URL
+~~~~~~~~
+
+Use ``--from-url`` to query using a SLUB catalog URL instead of individual parameters.
+This works with ``query``, ``scroll``, ``solr-params``, and ``solr-request``:
+
+.. code-block:: bash
+
+   slubfind query --from-url "https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz"
+   slubfind solr-params --from-url "https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz"
+
 Show Request URL
 ~~~~~~~~~~~~~~~~
 
