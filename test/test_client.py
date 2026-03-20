@@ -46,6 +46,14 @@ def test_solr_params_via_url():
     assert isinstance(result, dict)
 
 
+def test_get_query_raw_solr_response():
+    slub_find = SlubFind(export_format="raw-solr-response")
+    result = slub_find.get_query("manfred bonitz")
+    assert result is not None
+    assert isinstance(result.raw, dict)
+    assert "response" in result.raw
+
+
 def test_solr_request():
     slub_find = SlubFind()
     result = slub_find.solr_request("manfred bonitz")

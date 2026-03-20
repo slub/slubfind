@@ -203,6 +203,15 @@ def test_cmd_query_with_facet(capsys):
     assert kwargs["facet"] == [{"language": "ger"}]
 
 
+def test_cmd_query_raw_solr_response(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"response": {"docs": []}})
+    code = _run(
+        ["--export-format", "raw-solr-response", "query", "python"],
+        find, capsys)
+    assert code == 0
+
+
 # ---------------------------------------------------------------------------
 # cmd_document
 # ---------------------------------------------------------------------------
