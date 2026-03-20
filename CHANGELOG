@@ -1,3 +1,8 @@
+1.9.0 [2026-03-20]
+- Add json-holding-status export format with HoldingStatus parser
+- Add holding_status_document() convenience method
+- Add strict facet value validation for facet_avail, format_de14, and access_state
+
 1.8.0 [2026-03-20]
 - Add --from-url option for query, scroll, solr-params, and solr-request
 
