@@ -25,6 +25,45 @@ class AppDetails(JSONResponse):  # pylint: disable=R0903
         self.ok = isinstance(self.raw, dict) and "id" in self.raw
         self.found = self.ok and isinstance(
             self.raw["id"], str) and len(self.raw["id"].strip()) > 0
+        self.id = self._field("id")
+
+    def _unescape_dict(self, d):
+        """Apply inherited _unescape() to each value of a dict."""
+        if not isinstance(d, dict):
+            return d
+        return {k: self._unescape(v) for k, v in d.items()}
+
+    @property
+    def record(self):
+        """Return the unescaped record dict."""
+        raw_record = self.raw.get("record") if self.ok else None
+        if isinstance(raw_record, dict):
+            return self._unescape_dict(raw_record)
+        return None
+
+    @property
+    def title(self):
+        """Return the title from the record dict."""
+        rec = self.record
+        return rec.get("title") if rec else None
+
+    @property
+    def format(self):
+        """Return the format from the record dict."""
+        rec = self.record
+        return rec.get("format") if rec else None
+
+    @property
+    def contributor(self):
+        """Return the contributor from the record dict."""
+        rec = self.record
+        return rec.get("contributor") if rec else None
+
+    @property
+    def identifier(self):
+        """Return the identifier from the record dict."""
+        rec = self.record
+        return rec.get("identifier") if rec else None
 
 
 class AppSearch(JSONResponse):  # pylint: disable=R0903
@@ -73,3 +112,42 @@ class JsonLdResponse(JSONResponse):  # pylint: disable=R0903
         super().__init__(plain)
         self.ok = isinstance(self.raw, dict) and "@context" in self.raw
         self.graph = self.raw.get("@graph", []) if self.ok else []
+
+
+class JsonLdDetails(JsonLdResponse):  # pylint: disable=R0903
+    """Parser for JSON-LD detail view responses."""
+
+    def __init__(self, plain):
+        super().__init__(plain)
+        self.found = self.ok and len(self.graph) > 0 and not (
+            self.graph[0].get("@id", "").rstrip("/").endswith("/id"))
+
+    @property
+    def id(self):
+        """Return the @id of the first graph entry."""
+        return self.graph[0].get("@id") if self.graph else None
+
+    @property
+    def name(self):
+        """Return the so:name of the first graph entry."""
+        return self.graph[0].get("so:name") if self.graph else None
+
+    @property
+    def author(self):
+        """Return the so:author of the first graph entry."""
+        return self.graph[0].get("so:author") if self.graph else None
+
+    @property
+    def url(self):
+        """Return the so:url of the first graph entry."""
+        return self.graph[0].get("so:url") if self.graph else None
+
+    @property
+    def type(self):
+        """Return the @type of the first graph entry."""
+        return self.graph[0].get("@type") if self.graph else None
+
+
+class JsonLdSearch(JsonLdResponse):  # pylint: disable=R0903
+    """Parser for JSON-LD search view responses."""
+    pass

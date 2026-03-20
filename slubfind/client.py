@@ -6,7 +6,7 @@ from txpyfind import utils
 from txpyfind.client import Find
 from txpyfind.parser import JSONResponse
 
-from .parser import AppDetails, AppSearch, JsonLdResponse
+from .parser import AppDetails, AppSearch, JsonLdDetails, JsonLdSearch
 
 
 class SlubFind(Find):
@@ -119,7 +119,7 @@ class SlubFind(Find):
             document_id,
             data_format="json-ld",
             type_num=type_num,
-            parser_class=JsonLdResponse)
+            parser_class=JsonLdDetails)
 
     def jsonld_search(  # pylint: disable=R0913,R0917
             self,
@@ -143,7 +143,7 @@ class SlubFind(Find):
             sort=sort,
             data_format="json-ld",
             type_num=type_num,
-            parser_class=parser_class or JsonLdResponse)
+            parser_class=parser_class or JsonLdSearch)
 
     def settings(self):
         """

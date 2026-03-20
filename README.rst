@@ -18,7 +18,7 @@ Installation
 
    pip install slubfind
 
-... or from Github source
+... or from GitHub source
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
@@ -110,6 +110,23 @@ This works with all subcommands:
    slubfind --show-url document "0-1132486122"
    slubfind --show-url scroll "python" --batch 10
 
+Export Format
+~~~~~~~~~~~~~
+
+Use ``--export-format`` to select the output format. The default is ``app``.
+
+Fetch a document in JSON-LD format:
+
+.. code-block:: bash
+
+   slubfind document "0-1132486122" --export-format json-ld
+
+Search in JSON-LD format:
+
+.. code-block:: bash
+
+   slubfind query "manfred bonitz" --export-format json-ld
+
 Environment Variable
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -132,3 +149,7 @@ Python Usage Example
    slub_q = slub_find.app_search("manfred bonitz")
    # retrieve JSON data (detail view, app format)
    slub_doc = slub_find.app_document("0-1132486122")
+   # retrieve JSON-LD data (detail view)
+   slub_jsonld = slub_find.jsonld_document("0-1132486122")
+   # retrieve JSON-LD data (query view)
+   slub_jsonld_q = slub_find.jsonld_search("manfred bonitz")
