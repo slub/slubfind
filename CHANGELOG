@@ -1,3 +1,6 @@
+1.11.0 [2026-03-21]
+- Fix --export-format argument position: now accepted after the subcommand
+
 1.10.0 [2026-03-20]
 - Add raw-solr-response export format
 - Update README with all export formats and holding status example
