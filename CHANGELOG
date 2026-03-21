@@ -1,3 +1,17 @@
+1.12.0 [2026-03-21]
+- Add AppDetailsRecord, AppDetailsCopy, AppDetailsParts wrapper classes
+- AppDetails.record now returns AppDetailsRecord, .copies returns [AppDetailsCopy], .parts returns AppDetailsParts
+- Add AppDetails.oa and AppDetails.thumbnail properties
+- BREAKING: Remove AppDetails convenience properties (title, format, contributor, identifier) — use details.record.title etc.
+- Fix HoldingStatus parser: correct properties to access, additional_information, references, links
+- Add HoldingStatusIndex parser for json-holding-status-index format
+- Add RawSolrResponse parser for raw-solr-response format with num_found, docs, facet_counts, highlighting
+- Add SolrResultsSearch parser for json-solr-results format
+- Add AppSearch.facets property
+- Add json-solr-results and json-holding-status-index export formats
+- Add solr_results_search(), raw_solr_search(), holding_status_index_document() client methods
+- Add --no-facets CLI flag to strip facet data from query output
+
 1.11.0 [2026-03-21]
 - Fix --export-format argument position: now accepted after the subcommand
 
