@@ -207,7 +207,7 @@ def test_cmd_query_raw_solr_response(capsys):
     find = MagicMock()
     find.get_query.return_value = _make_result({"response": {"docs": []}})
     code = _run(
-        ["--export-format", "raw-solr-response", "query", "python"],
+        ["query", "--export-format", "raw-solr-response", "python"],
         find, capsys)
     assert code == 0
 

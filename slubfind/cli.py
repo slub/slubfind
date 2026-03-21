@@ -63,11 +63,6 @@ def build_parser():
              " (or set SLUBFIND_URL env var,"
              " default: https://katalog.slub-dresden.de)")
     parser.add_argument(
-        "--export-format",
-        default="app",
-        choices=SlubFind.EXPORT_FORMATS,
-        help="export format (default: app)")
-    parser.add_argument(
         "--export-page",
         type=int,
         default=1369315142,
@@ -105,11 +100,21 @@ def build_parser():
         "--count", type=int, default=0, help="results per page")
     query_parser.add_argument(
         "--sort", default="", help="sort instruction")
+    query_parser.add_argument(
+        "--export-format",
+        default="app",
+        choices=SlubFind.EXPORT_FORMATS,
+        help="export format (default: app)")
 
     # document subcommand
     doc_parser = subparsers.add_parser(
         "document", help="fetch document in app format")
     doc_parser.add_argument("document_id", help="document identifier")
+    doc_parser.add_argument(
+        "--export-format",
+        default="app",
+        choices=SlubFind.EXPORT_FORMATS,
+        help="export format (default: app)")
 
     # scroll subcommand
     scroll_parser = subparsers.add_parser(
@@ -183,7 +188,7 @@ def make_find(args):
     """Create a SlubFind instance from parsed arguments."""
     return SlubFind(
         base_url=args.url,
-        export_format=args.export_format,
+        export_format=getattr(args, "export_format", "app"),
         export_page=args.export_page)
 
 
