@@ -54,6 +54,28 @@ def test_get_query_raw_solr_response():
     assert "response" in result.raw
 
 
+def test_solr_results_search():
+    slub_find = SlubFind()
+    result = slub_find.solr_results_search("manfred bonitz")
+    assert result is not None
+    assert isinstance(result.raw, list)
+
+
+def test_raw_solr_search():
+    slub_find = SlubFind()
+    result = slub_find.raw_solr_search("manfred bonitz")
+    assert result is not None
+    assert isinstance(result.raw, dict)
+    assert "response" in result.raw
+
+
+def test_holding_status_index_document():
+    slub_find = SlubFind()
+    result = slub_find.holding_status_index_document("0-1132486122")
+    assert result is not None
+    assert isinstance(result.raw, dict)
+
+
 def test_solr_request():
     slub_find = SlubFind()
     result = slub_find.solr_request("manfred bonitz")

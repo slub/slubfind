@@ -105,6 +105,10 @@ def build_parser():
         default="app",
         choices=SlubFind.EXPORT_FORMATS,
         help="export format (default: app)")
+    query_parser.add_argument(
+        "--no-facets",
+        action="store_true",
+        help="strip facet data from query output")
 
     # document subcommand
     doc_parser = subparsers.add_parser(
@@ -243,6 +247,9 @@ def cmd_query(find, args):
         print("error: no results", file=sys.stderr)
         return 1
     data = result.raw if hasattr(result, "raw") else result
+    if args.no_facets and isinstance(data, dict):
+        data = {k: v for k, v in data.items()
+                if k not in ("facets", "facet_counts")}
     print(json_dumps(data, pretty=args.pretty))
     return 0
 
