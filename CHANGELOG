@@ -1,3 +1,7 @@
+1.10.0 [2026-03-20]
+- Add raw-solr-response export format
+- Update README with all export formats and holding status example
+
 1.9.0 [2026-03-20]
 - Add json-holding-status export format with HoldingStatus parser
 - Add holding_status_document() convenience method

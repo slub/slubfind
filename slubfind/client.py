@@ -22,7 +22,8 @@ class SlubFind(Find):
         "json-holding-status",
         "json-all",
         "json-solr-params",
-        "json-solr-request"
+        "json-solr-request",
+        "raw-solr-response"
     ]
 
     QUERY_TYPES = [

@@ -35,7 +35,7 @@ The base URL defaults to ``https://katalog.slub-dresden.de``.
 Query
 ~~~~~
 
-Execute a search query in app format:
+Execute a search query:
 
 .. code-block:: bash
 
@@ -50,7 +50,7 @@ With a facet filter and pagination:
 Document
 ~~~~~~~~
 
-Fetch a single document by ID in app format:
+Fetch a single document by ID:
 
 .. code-block:: bash
 
@@ -126,6 +126,15 @@ Export Format
 
 Use ``--export-format`` to select the output format. The default is ``app``.
 
+Available formats:
+
+- Query view (``query``): ``app``, ``json-ld``, ``json-all``, ``raw-solr-response``
+- Detail view (``document``): ``app``, ``json-ld``, ``json-holding-status``
+
+The ``scroll`` subcommand always uses ``raw-solr-response`` internally.
+The formats ``json-solr-params`` and ``json-solr-request`` are used internally
+by the ``solr-params`` and ``solr-request`` subcommands.
+
 Fetch a document in JSON-LD format:
 
 .. code-block:: bash
@@ -137,6 +146,18 @@ Search in JSON-LD format:
 .. code-block:: bash
 
    slubfind query "manfred bonitz" --export-format json-ld
+
+Fetch holding status for a document:
+
+.. code-block:: bash
+
+   slubfind document "0-1132486122" --export-format json-holding-status
+
+Query with raw Solr response:
+
+.. code-block:: bash
+
+   slubfind query "manfred bonitz" --export-format raw-solr-response
 
 Environment Variable
 ~~~~~~~~~~~~~~~~~~~~
@@ -164,3 +185,5 @@ Python Usage Example
    slub_jsonld = slub_find.jsonld_document("0-1132486122")
    # retrieve JSON-LD data (query view)
    slub_jsonld_q = slub_find.jsonld_search("manfred bonitz")
+   # retrieve holding status (detail view)
+   slub_hs = slub_find.holding_status_document("0-1132486122")
