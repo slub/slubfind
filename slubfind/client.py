@@ -7,8 +7,8 @@ from txpyfind.client import Find
 from txpyfind.parser import JSONResponse
 
 from .parser import (
-    AppDetails, AppSearch, HoldingStatus, HoldingStatusIndex,
-    JsonLdDetails, JsonLdSearch, RawSolrResponse, SolrResultsSearch
+    AppDetails, AppSearch, FincSolrResponse, FincSolrResults,
+    HoldingStatus, HoldingStatusIndex, JsonLdDetails, JsonLdSearch
 )
 
 
@@ -196,7 +196,7 @@ class SlubFind(Find):
             sort=sort,
             data_format="raw-solr-response",
             type_num=type_num,
-            parser_class=parser_class or RawSolrResponse)
+            parser_class=parser_class or FincSolrResponse)
 
     def solr_results_search(  # pylint: disable=R0913,R0917
             self,
@@ -220,7 +220,7 @@ class SlubFind(Find):
             sort=sort,
             data_format="json-solr-results",
             type_num=type_num,
-            parser_class=parser_class or SolrResultsSearch)
+            parser_class=parser_class or FincSolrResults)
 
     def jsonld_search(  # pylint: disable=R0913,R0917
             self,

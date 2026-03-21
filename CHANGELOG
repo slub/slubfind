@@ -1,3 +1,9 @@
+1.13.0 [2026-03-21]
+- Remove duplicate RawSolrResponse and SolrResultsSearch parsers (now provided by txpyfind)
+- Add FincDocument wrapper with typed property access to finc/VuFind Solr fields
+- Add FincSolrResponse and FincSolrResults parsers returning FincDocument instances
+- BREAKING: raw_solr_search() now defaults to FincSolrResponse, solr_results_search() to FincSolrResults
+
 1.12.0 [2026-03-21]
 - Add AppDetailsRecord, AppDetailsCopy, AppDetailsParts wrapper classes
 - AppDetails.record now returns AppDetailsRecord, .copies returns [AppDetailsCopy], .parts returns AppDetailsParts

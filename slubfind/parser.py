@@ -1,7 +1,7 @@
 """
 parser module of ``slubfind``
 """
-from txpyfind.parser import JSONResponse
+from txpyfind.parser import JSONResponse, RawSolrResponse, SolrResultsResponse
 
 
 class HoldingStatus(JSONResponse):  # pylint: disable=R0903
@@ -327,55 +327,277 @@ class AppSearch(JSONResponse):  # pylint: disable=R0903
         return self.raw.get("facets") if self.ok else None
 
 
-class RawSolrResponse(JSONResponse):  # pylint: disable=R0903
-    """
-    Parser for raw-solr-response search view responses.
+class FincDocument:
+    """Lightweight wrapper around a single finc/VuFind Solr document dict."""
 
-    Expected structure::
+    def __init__(self, raw, unescape_fn):
+        self._raw = raw
+        self._unescape = unescape_fn
 
-        {
-            "response": {"numFound": ..., "start": ..., "docs": [...]},
-            "facet_counts": {...},
-            "highlighting": {...}
-        }
-    """
+    @property
+    def raw(self):
+        """Return the underlying document dict."""
+        return self._raw
+
+    def _get(self, key):
+        val = self._raw.get(key)
+        return self._unescape(val) if val is not None else None
+
+    def _get_list(self, key):
+        val = self._raw.get(key)
+        if isinstance(val, list):
+            return [self._unescape(v) for v in val] if val else []
+        return []
+
+    # -- single-valued fields --
+
+    @property
+    def id(self):
+        """Return the id."""
+        return self._get("id")
+
+    @property
+    def title(self):
+        """Return the title."""
+        return self._get("title")
+
+    @property
+    def title_short(self):
+        """Return the title_short."""
+        return self._get("title_short")
+
+    @property
+    def title_full(self):
+        """Return the title_full."""
+        return self._get("title_full")
+
+    @property
+    def title_sort(self):
+        """Return the title_sort."""
+        return self._get("title_sort")
+
+    @property
+    def title_sub(self):
+        """Return the title_sub."""
+        return self._get("title_sub")
+
+    @property
+    def title_auth(self):
+        """Return the title_auth."""
+        return self._get("title_auth")
+
+    @property
+    def author_sort(self):
+        """Return the author_sort."""
+        return self._get("author_sort")
+
+    @property
+    def publishDateSort(self):
+        """Return the publishDateSort."""
+        return self._get("publishDateSort")
+
+    @property
+    def edition(self):
+        """Return the edition."""
+        return self._get("edition")
+
+    @property
+    def description(self):
+        """Return the description."""
+        return self._get("description")
+
+    @property
+    def imprint(self):
+        """Return the imprint."""
+        return self._get("imprint")
+
+    @property
+    def thumbnail(self):
+        """Return the thumbnail."""
+        return self._get("thumbnail")
+
+    @property
+    def record_format(self):
+        """Return the record_format (Solr field: record_format)."""
+        return self._get("record_format")
+
+    @property
+    def source_id(self):
+        """Return the source_id."""
+        return self._get("source_id")
+
+    @property
+    def record_id(self):
+        """Return the record_id."""
+        return self._get("record_id")
+
+    @property
+    def container_title(self):
+        """Return the container_title."""
+        return self._get("container_title")
+
+    @property
+    def container_volume(self):
+        """Return the container_volume."""
+        return self._get("container_volume")
+
+    @property
+    def container_issue(self):
+        """Return the container_issue."""
+        return self._get("container_issue")
+
+    @property
+    def container_start_page(self):
+        """Return the container_start_page."""
+        return self._get("container_start_page")
+
+    # -- multi-valued fields --
+
+    @property
+    def author(self):
+        """Return the author list."""
+        return self._get_list("author")
+
+    @property
+    def author2(self):
+        """Return the author2 list."""
+        return self._get_list("author2")
+
+    @property
+    def author_corporate(self):
+        """Return the author_corporate list."""
+        return self._get_list("author_corporate")
+
+    @property
+    def author_role(self):
+        """Return the author_role list."""
+        return self._get_list("author_role")
+
+    @property
+    def author_id(self):
+        """Return the author_id list."""
+        return self._get_list("author_id")
+
+    @property
+    def format(self):
+        """Return the format list."""
+        return self._get_list("format")
+
+    @property
+    def language(self):
+        """Return the language list."""
+        return self._get_list("language")
+
+    @property
+    def publisher(self):
+        """Return the publisher list."""
+        return self._get_list("publisher")
+
+    @property
+    def publishDate(self):
+        """Return the publishDate list."""
+        return self._get_list("publishDate")
+
+    @property
+    def isbn(self):
+        """Return the isbn list."""
+        return self._get_list("isbn")
+
+    @property
+    def issn(self):
+        """Return the issn list."""
+        return self._get_list("issn")
+
+    @property
+    def url(self):
+        """Return the url list."""
+        return self._get_list("url")
+
+    @property
+    def topic(self):
+        """Return the topic list."""
+        return self._get_list("topic")
+
+    @property
+    def topic_facet(self):
+        """Return the topic_facet list."""
+        return self._get_list("topic_facet")
+
+    @property
+    def series(self):
+        """Return the series list."""
+        return self._get_list("series")
+
+    @property
+    def series2(self):
+        """Return the series2 list."""
+        return self._get_list("series2")
+
+    @property
+    def contents(self):
+        """Return the contents list."""
+        return self._get_list("contents")
+
+    @property
+    def genre(self):
+        """Return the genre list."""
+        return self._get_list("genre")
+
+    @property
+    def geographic(self):
+        """Return the geographic list."""
+        return self._get_list("geographic")
+
+    @property
+    def institution(self):
+        """Return the institution list."""
+        return self._get_list("institution")
+
+    @property
+    def collection(self):
+        """Return the collection list."""
+        return self._get_list("collection")
+
+    @property
+    def building(self):
+        """Return the building list."""
+        return self._get_list("building")
+
+    @property
+    def mega_collection(self):
+        """Return the mega_collection list."""
+        return self._get_list("mega_collection")
+
+    @property
+    def rvk_facet(self):
+        """Return the rvk_facet list."""
+        return self._get_list("rvk_facet")
+
+    @property
+    def signatur(self):
+        """Return the signatur list."""
+        return self._get_list("signatur")
+
+    @property
+    def barcode(self):
+        """Return the barcode list."""
+        return self._get_list("barcode")
+
+
+class FincSolrResponse(RawSolrResponse):
+    """RawSolrResponse with docs wrapped as FincDocument instances."""
 
     def __init__(self, plain):
         super().__init__(plain)
-        self.ok = isinstance(self.raw, dict) and "response" in self.raw
-        response = self.raw.get("response", {}) if self.ok else {}
-        self.num_found = response.get("numFound", 0)
-        self.start = response.get("start", 0)
-        self.docs = response.get("docs", [])
-
-    @property
-    def facet_counts(self):
-        """Return the facet_counts dict."""
-        return self.raw.get("facet_counts") if self.ok else None
-
-    @property
-    def highlighting(self):
-        """Return the highlighting dict."""
-        return self.raw.get("highlighting") if self.ok else None
+        self.docs = [FincDocument(d, self._unescape) for d in self.docs]
 
 
-class SolrResultsSearch(JSONResponse):  # pylint: disable=R0903
-    """
-    Parser for json-solr-results search view responses.
-
-    Expected structure::
-
-        [{field1: ..., field2: ...}, ...]
-    """
-
-    def __init__(self, plain):
-        super().__init__(plain)
-        self.ok = isinstance(self.raw, list)
+class FincSolrResults(SolrResultsResponse):
+    """SolrResultsResponse with docs wrapped as FincDocument instances."""
 
     @property
     def docs(self):
-        """Return the docs list."""
-        return self.raw if self.ok else []
+        return [FincDocument(d, self._unescape) for d in super().docs]
 
 
 class JsonLdResponse(JSONResponse):  # pylint: disable=R0903
