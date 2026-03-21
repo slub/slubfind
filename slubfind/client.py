@@ -7,7 +7,8 @@ from txpyfind.client import Find
 from txpyfind.parser import JSONResponse
 
 from .parser import (
-    AppDetails, AppSearch, HoldingStatus, JsonLdDetails, JsonLdSearch
+    AppDetails, AppSearch, HoldingStatus, HoldingStatusIndex,
+    JsonLdDetails, JsonLdSearch, RawSolrResponse, SolrResultsSearch
 )
 
 
@@ -23,6 +24,8 @@ class SlubFind(Find):
         "json-all",
         "json-solr-params",
         "json-solr-request",
+        "json-solr-results",
+        "json-holding-status-index",
         "raw-solr-response"
     ]
 
@@ -157,6 +160,67 @@ class SlubFind(Find):
             data_format="json-ld",
             type_num=type_num,
             parser_class=JsonLdDetails)
+
+    def holding_status_index_document(
+            self,
+            document_id,
+            type_num=None):
+        """
+        fetch indexed holding status for a document
+        """
+        return self.get_document(
+            document_id,
+            data_format="json-holding-status-index",
+            type_num=type_num,
+            parser_class=HoldingStatusIndex)
+
+    def raw_solr_search(  # pylint: disable=R0913,R0917
+            self,
+            query,
+            qtype="default",
+            facet=None,
+            page=0,
+            count=0,
+            sort="",
+            type_num=None,
+            parser_class=None):
+        """
+        fetch query view in raw-solr-response format
+        """
+        return self.get_query(
+            query,
+            qtype=qtype,
+            facet=facet,
+            page=page,
+            count=count,
+            sort=sort,
+            data_format="raw-solr-response",
+            type_num=type_num,
+            parser_class=parser_class or RawSolrResponse)
+
+    def solr_results_search(  # pylint: disable=R0913,R0917
+            self,
+            query,
+            qtype="default",
+            facet=None,
+            page=0,
+            count=0,
+            sort="",
+            type_num=None,
+            parser_class=None):
+        """
+        fetch query view in json-solr-results format
+        """
+        return self.get_query(
+            query,
+            qtype=qtype,
+            facet=facet,
+            page=page,
+            count=count,
+            sort=sort,
+            data_format="json-solr-results",
+            type_num=type_num,
+            parser_class=parser_class or SolrResultsSearch)
 
     def jsonld_search(  # pylint: disable=R0913,R0917
             self,

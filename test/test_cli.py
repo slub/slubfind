@@ -212,6 +212,55 @@ def test_cmd_query_raw_solr_response(capsys):
     assert code == 0
 
 
+def test_cmd_query_json_solr_results(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result([{"id": "1"}])
+    code = _run(
+        ["query", "--export-format", "json-solr-results", "python"],
+        find, capsys)
+    assert code == 0
+    assert '"id"' in capsys.readouterr().out
+
+
+def test_cmd_query_no_facets(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({
+        "docs": [{"id": "1"}],
+        "facets": {"language": {"ger": 10}}})
+    code = _run(["query", "--no-facets", "python"], find, capsys)
+    assert code == 0
+    out = capsys.readouterr().out
+    assert '"docs"' in out
+    assert '"facets"' not in out
+
+
+def test_cmd_query_no_facets_with_facet_counts(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({
+        "response": {"docs": []},
+        "facet_counts": {"facet_fields": {}}})
+    code = _run(
+        ["query", "--no-facets", "--export-format", "raw-solr-response",
+         "python"],
+        find, capsys)
+    assert code == 0
+    out = capsys.readouterr().out
+    assert '"response"' in out
+    assert '"facet_counts"' not in out
+
+
+def test_cmd_query_no_facets_non_dict(capsys):
+    """--no-facets is a no-op when the result is not a dict (e.g. list)."""
+    find = MagicMock()
+    find.get_query.return_value = _make_result([{"id": "1"}])
+    code = _run(
+        ["query", "--no-facets", "--export-format", "json-solr-results",
+         "python"],
+        find, capsys)
+    assert code == 0
+    assert '"id"' in capsys.readouterr().out
+
+
 # ---------------------------------------------------------------------------
 # cmd_document
 # ---------------------------------------------------------------------------
