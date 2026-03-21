@@ -1,3 +1,6 @@
+1.14.0 [2026-03-21]
+- Rewrite README: expanded introduction, consistent example queries, complete export format documentation
+
 1.13.0 [2026-03-21]
 - Remove duplicate RawSolrResponse and SolrResultsSearch parsers (now provided by txpyfind)
 - Add FincDocument wrapper with typed property access to finc/VuFind Solr fields
