@@ -1,10 +1,11 @@
 import json
 import pytest
+from txpyfind.parser import RawSolrResponse, SolrResultsResponse
 from slubfind.parser import (
     AppDetails, AppDetailsCopy, AppDetailsParts, AppDetailsRecord,
-    AppSearch, HoldingStatus, HoldingStatusIndex,
-    JsonLdResponse, JsonLdDetails, JsonLdSearch,
-    RawSolrResponse, SolrResultsSearch
+    AppSearch, FincDocument, FincSolrResponse, FincSolrResults,
+    HoldingStatus, HoldingStatusIndex,
+    JsonLdResponse, JsonLdDetails, JsonLdSearch
 )
 
 
@@ -344,29 +345,29 @@ def test_raw_solr_response_invalid_json():
 
 
 # ---------------------------------------------------------------------------
-# SolrResultsSearch
+# SolrResultsResponse
 # ---------------------------------------------------------------------------
 
 def test_solr_results_search_valid_list():
-    result = _make(SolrResultsSearch, [{"id": "1"}, {"id": "2"}])
+    result = _make(SolrResultsResponse, [{"id": "1"}, {"id": "2"}])
     assert result.ok is True
     assert result.docs == [{"id": "1"}, {"id": "2"}]
 
 
 def test_solr_results_search_empty_list():
-    result = _make(SolrResultsSearch, [])
+    result = _make(SolrResultsResponse, [])
     assert result.ok is True
     assert result.docs == []
 
 
 def test_solr_results_search_non_list():
-    result = _make(SolrResultsSearch, {"not": "a list"})
+    result = _make(SolrResultsResponse, {"not": "a list"})
     assert result.ok is False
     assert result.docs == []
 
 
 def test_solr_results_search_invalid_json():
-    result = SolrResultsSearch("not-json{{{")
+    result = SolrResultsResponse("not-json{{{")
     assert result.ok is False
     assert result.docs == []
 
@@ -566,3 +567,198 @@ def test_jsonld_search_not_ok():
     result = _make(JsonLdSearch, {"data": "invalid"})
     assert result.ok is False
     assert result.graph == []
+
+
+# ---------------------------------------------------------------------------
+# FincDocument
+# ---------------------------------------------------------------------------
+
+def test_finc_document_single_valued_fields():
+    def noop(v):
+        return v
+    doc = FincDocument({
+        "id": "0-123", "title": "Test", "title_short": "T",
+        "title_full": "Test Full", "title_sort": "test",
+        "title_sub": "Subtitle", "title_auth": "Auth Title",
+        "author_sort": "Doe, John", "publishDateSort": "2024",
+        "edition": "3rd", "description": "Desc",
+        "imprint": "Publisher, 2024", "thumbnail": "https://img.example.com",
+        "record_format": "marc21", "source_id": "15",
+        "record_id": "abc123",
+        "container_title": "Journal", "container_volume": "10",
+        "container_issue": "3", "container_start_page": "42"
+    }, noop)
+    assert doc.id == "0-123"
+    assert doc.title == "Test"
+    assert doc.title_short == "T"
+    assert doc.title_full == "Test Full"
+    assert doc.title_sort == "test"
+    assert doc.title_sub == "Subtitle"
+    assert doc.title_auth == "Auth Title"
+    assert doc.author_sort == "Doe, John"
+    assert doc.publishDateSort == "2024"
+    assert doc.edition == "3rd"
+    assert doc.description == "Desc"
+    assert doc.imprint == "Publisher, 2024"
+    assert doc.thumbnail == "https://img.example.com"
+    assert doc.record_format == "marc21"
+    assert doc.source_id == "15"
+    assert doc.record_id == "abc123"
+    assert doc.container_title == "Journal"
+    assert doc.container_volume == "10"
+    assert doc.container_issue == "3"
+    assert doc.container_start_page == "42"
+
+
+def test_finc_document_multi_valued_fields():
+    def noop(v):
+        return v
+    doc = FincDocument({
+        "author": ["Doe, John", "Smith, Jane"],
+        "author2": ["Editor, A"],
+        "author_corporate": ["Corp Inc"],
+        "author_role": ["aut", "edt"],
+        "author_id": ["(DE-588)123"],
+        "format": ["Book", "E-Book"],
+        "language": ["ger", "eng"],
+        "publisher": ["Verlag"],
+        "publishDate": ["2024"],
+        "isbn": ["978-3-123"],
+        "issn": ["1234-5678"],
+        "url": ["https://example.com"],
+        "topic": ["Science"],
+        "topic_facet": ["Science"],
+        "series": ["Series A"],
+        "series2": ["Subseries"],
+        "contents": ["Chapter 1"],
+        "genre": ["Fiction"],
+        "geographic": ["Germany"],
+        "institution": ["DE-14"],
+        "collection": ["main"],
+        "building": ["Central"],
+        "mega_collection": ["K10plus"],
+        "rvk_facet": ["AB 1234"],
+        "signatur": ["AB 1234"],
+        "barcode": ["000123"]
+    }, noop)
+    assert doc.author == ["Doe, John", "Smith, Jane"]
+    assert doc.author2 == ["Editor, A"]
+    assert doc.author_corporate == ["Corp Inc"]
+    assert doc.author_role == ["aut", "edt"]
+    assert doc.author_id == ["(DE-588)123"]
+    assert doc.format == ["Book", "E-Book"]
+    assert doc.language == ["ger", "eng"]
+    assert doc.publisher == ["Verlag"]
+    assert doc.publishDate == ["2024"]
+    assert doc.isbn == ["978-3-123"]
+    assert doc.issn == ["1234-5678"]
+    assert doc.url == ["https://example.com"]
+    assert doc.topic == ["Science"]
+    assert doc.topic_facet == ["Science"]
+    assert doc.series == ["Series A"]
+    assert doc.series2 == ["Subseries"]
+    assert doc.contents == ["Chapter 1"]
+    assert doc.genre == ["Fiction"]
+    assert doc.geographic == ["Germany"]
+    assert doc.institution == ["DE-14"]
+    assert doc.collection == ["main"]
+    assert doc.building == ["Central"]
+    assert doc.mega_collection == ["K10plus"]
+    assert doc.rvk_facet == ["AB 1234"]
+    assert doc.signatur == ["AB 1234"]
+    assert doc.barcode == ["000123"]
+
+
+def test_finc_document_missing_keys():
+    def noop(v):
+        return v
+    doc = FincDocument({}, noop)
+    assert doc.id is None
+    assert doc.title is None
+    assert doc.author == []
+    assert doc.format == []
+    assert doc.isbn == []
+
+
+def test_finc_document_unescape():
+    import html
+    doc = FincDocument(
+        {"title": "M&uuml;nchen &amp; Berlin",
+         "author": ["M&uuml;ller"]},
+        html.unescape)
+    assert doc.title == "München & Berlin"
+    assert doc.author == ["Müller"]
+
+
+def test_finc_document_raw():
+    def noop(v):
+        return v
+    data = {"id": "0-123", "title": "Test"}
+    doc = FincDocument(data, noop)
+    assert doc.raw is data
+
+
+def test_finc_document_non_list_multi_valued():
+    def noop(v):
+        return v
+    doc = FincDocument({"author": "single string"}, noop)
+    assert doc.author == []
+
+
+# ---------------------------------------------------------------------------
+# FincSolrResponse
+# ---------------------------------------------------------------------------
+
+def test_finc_solr_response_docs_are_finc_documents():
+    result = _make(FincSolrResponse, {
+        "response": {"numFound": 2, "start": 0, "docs": [
+            {"id": "1", "title": "First"},
+            {"id": "2", "title": "Second"}
+        ]}})
+    assert result.ok is True
+    assert result.num_found == 2
+    assert len(result.docs) == 2
+    assert isinstance(result.docs[0], FincDocument)
+    assert result.docs[0].id == "1"
+    assert result.docs[0].title == "First"
+    assert result.docs[1].id == "2"
+
+
+def test_finc_solr_response_empty_docs():
+    result = _make(FincSolrResponse, {"response": {"docs": []}})
+    assert result.ok is True
+    assert result.docs == []
+
+
+def test_finc_solr_response_not_ok():
+    result = _make(FincSolrResponse, {"other": "data"})
+    assert result.ok is False
+    assert result.docs == []
+
+
+# ---------------------------------------------------------------------------
+# FincSolrResults
+# ---------------------------------------------------------------------------
+
+def test_finc_solr_results_docs_are_finc_documents():
+    result = _make(FincSolrResults, [
+        {"id": "1", "title": "First"},
+        {"id": "2", "title": "Second"}
+    ])
+    assert result.ok is True
+    assert len(result.docs) == 2
+    assert isinstance(result.docs[0], FincDocument)
+    assert result.docs[0].id == "1"
+    assert result.docs[1].title == "Second"
+
+
+def test_finc_solr_results_empty():
+    result = _make(FincSolrResults, [])
+    assert result.ok is True
+    assert result.docs == []
+
+
+def test_finc_solr_results_not_ok():
+    result = _make(FincSolrResults, {"not": "a list"})
+    assert result.ok is False
+    assert result.docs == []
