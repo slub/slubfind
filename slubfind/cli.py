@@ -9,6 +9,7 @@ import sys
 
 from . import __version__
 from .client import SlubFind
+from txpyfind.parser import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -81,10 +82,6 @@ def build_parser():
         default=1369315142,
         help="export page type number (default: 1369315142)")
     parser.add_argument(
-        "--pretty",
-        action="store_true",
-        help="pretty-print JSON output (with indentation)")
-    parser.add_argument(
         "--show-url",
         action="store_true",
         help="print the request URL instead of fetching the response")
@@ -143,6 +140,14 @@ def build_parser():
         "--no-facets",
         action="store_true",
         help="omit facet data from the JSON output")
+    query_parser.add_argument(
+        "--no-parser",
+        action="store_true",
+        help="skip response parsing and print raw server output")
+    query_parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="pretty-print JSON output")
 
     # document subcommand
     doc_parser = subparsers.add_parser(
@@ -173,6 +178,14 @@ def build_parser():
             "json-holding-status (links and references), "
             "json-holding-status-index (availability summary and links); "
             "default: app"))
+    doc_parser.add_argument(
+        "--no-parser",
+        action="store_true",
+        help="skip response parsing and print raw server output")
+    doc_parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="pretty-print JSON output")
 
     # scroll subcommand
     scroll_parser = subparsers.add_parser(
@@ -211,13 +224,17 @@ def build_parser():
         help="print one JSON object per line instead of one JSON array")
 
     # settings subcommand
-    subparsers.add_parser(
+    settings_parser = subparsers.add_parser(
         "settings",
         help="show TYPO3-find settings",
         description=(
             "Fetch the TYPO3-find settings exposed by the catalog export "
             "endpoint."
         ))
+    settings_parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="pretty-print JSON output")
 
     # solr-params subcommand
     solr_params_parser = subparsers.add_parser(
@@ -253,6 +270,10 @@ def build_parser():
     solr_params_parser.add_argument(
         "--sort", default="",
         help="sort instruction, for example 'publishDateSort desc'")
+    solr_params_parser.add_argument(
+        "--pretty",
+        action="store_true",
+        help="pretty-print JSON output")
 
     # solr-request subcommand
     solr_request_parser = subparsers.add_parser(
@@ -297,7 +318,8 @@ def make_find(args):
     return SlubFind(
         base_url=args.url,
         export_format=getattr(args, "export_format", "app"),
-        export_page=args.export_page)
+        export_page=args.export_page,
+        parser_class=None if getattr(args, "no_parser", False) else JSONResponse)
 
 
 def resolve_from_url(find, args):
@@ -350,6 +372,9 @@ def cmd_query(find, args):
     if result is None:
         print("error: no results", file=sys.stderr)
         return 1
+    if args.no_parser:
+        print(result.plain if hasattr(result, "plain") else result)
+        return 0
     data = result.raw if hasattr(result, "raw") else result
     if args.no_facets and isinstance(data, dict):
         data = {k: v for k, v in data.items()
@@ -371,6 +396,9 @@ def cmd_document(find, args):
     if result is None:
         print("error: document not found", file=sys.stderr)
         return 1
+    if args.no_parser:
+        print(result.plain if hasattr(result, "plain") else result)
+        return 0
     data = result.raw if hasattr(result, "raw") else result
     print(json_dumps(data, pretty=args.pretty))
     return 0
@@ -396,7 +424,7 @@ def cmd_scroll(find, args):
                 facet=facet,
                 batch=args.batch,
                 sort=args.sort):
-            print(json_dumps(doc, pretty=args.pretty))
+            print(json_dumps(doc))
         return 0
 
     results = find.scroll_get_query(
@@ -408,7 +436,7 @@ def cmd_scroll(find, args):
     if results is None:
         print("error: no results", file=sys.stderr)
         return 1
-    print(json_dumps(results, pretty=args.pretty))
+    print(json_dumps(results))
     return 0
 
 
