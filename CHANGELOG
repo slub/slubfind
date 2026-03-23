@@ -1,3 +1,11 @@
+1.15.0 [2026-03-23]
+- Split export format choices per subcommand (query vs document)
+- Add --no-parser CLI flag to skip response parsing and print raw server output
+- Move --pretty from global flag to per-subcommand (query, document, settings, solr-params)
+- Expand CLI help text with descriptions, examples, and epilogs
+- Fix pylint import order in cli.py
+- Update README: SLUB Dresden naming, format descriptions, Python usage examples, --no-parser documentation
+
 1.14.0 [2026-03-21]
 - Rewrite README: expanded introduction, consistent example queries, complete export format documentation
 

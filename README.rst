@@ -3,10 +3,11 @@ slubfind
 ========
 
 ``slubfind`` is a command-line tool and Python library for querying the
-`SLUB catalog <https://katalog.slub-dresden.de>`_ — the public catalog of
-SLUB Dresden (Saxon State and University Library). It retrieves catalog records
-in multiple formats including structured app data, JSON-LD linked data, Solr
-responses, and holding/availability information.
+`SLUB catalog <https://katalog.slub-dresden.de>`_ — the public library
+catalog of SLUB Dresden (Saxon State Library - Dresden State and
+University Library). It retrieves catalog records in multiple formats
+including SLUBApp data, JSON-LD linked data, Solr responses, and
+holding/availability information.
 
 Under the hood, ``slubfind`` builds on `txpyfind <https://github.com/slub/txpyfind>`_,
 a generic client for `TYPO3-find <https://github.com/subugoe/typo3-find>`_ catalog
@@ -111,6 +112,9 @@ This works with ``query``, ``scroll``, ``solr-params``, and ``solr-request``:
 .. code-block:: bash
 
    slubfind query --from-url "https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz"
+
+.. code-block:: bash
+
    slubfind solr-params --from-url "https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz"
 
 Show Request URL
@@ -121,8 +125,14 @@ This works with all subcommands:
 
 .. code-block:: bash
 
-   slubfind --show-url query "manfred bonitz" --facet "format_de14=Book, E-Book"
    slubfind --show-url document 0-1132486122
+
+.. code-block:: bash
+
+   slubfind --show-url query "manfred bonitz" --facet "format_de14=Book, E-Book"
+
+.. code-block:: bash
+
    slubfind --show-url scroll "manfred bonitz" --batch 10
 
 Export Format
@@ -132,12 +142,12 @@ Use ``--export-format`` to select the output format. The default is ``app``.
 
 Available formats and their supported subcommands:
 
-- ``app`` (default) — structured app format (``query``, ``document``)
+- ``app`` (default) — SLUBApp data (``query``, ``document``)
 - ``json-ld`` — JSON-LD linked data (``query``, ``document``)
-- ``json-holding-status`` — full-text access and reference links (``document`` only)
-- ``json-holding-status-index`` — resource and related links (``document`` only)
 - ``json-solr-results`` — Solr results (``query`` only)
 - ``raw-solr-response`` — raw Solr response (``query`` only)
+- ``json-holding-status`` — access links, supplementary information, and references (``document`` only)
+- ``json-holding-status-index`` — availability status, shelf location, and links (``document`` only)
 
 The ``scroll`` subcommand always uses ``raw-solr-response`` internally.
 The formats ``json-all``, ``json-solr-params``, and ``json-solr-request`` are used
@@ -155,13 +165,13 @@ Search in JSON-LD format:
 
    slubfind query "manfred bonitz" --export-format json-ld
 
-Fetch holding status for a document:
+Fetch access links and references for a document:
 
 .. code-block:: bash
 
    slubfind document 0-320589099 --export-format json-holding-status
 
-Fetch indexed holding status for a document:
+Fetch availability status and location for a document:
 
 .. code-block:: bash
 
@@ -179,6 +189,17 @@ Query with raw Solr response:
 
    slubfind query "manfred bonitz" --export-format raw-solr-response
 
+Raw Server Output
+~~~~~~~~~~~~~~~~~
+
+Use ``--no-parser`` to skip response parsing and print the raw server output.
+This is useful for inspecting the exact response or piping to other tools:
+
+.. code-block:: bash
+
+   slubfind query "manfred bonitz" --no-parser
+   slubfind document 0-1132486122 --no-parser --export-format json-holding-status
+
 Environment Variable
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -187,6 +208,9 @@ Set ``SLUBFIND_URL`` to override the default base URL:
 .. code-block:: bash
 
    export SLUBFIND_URL=https://katalog.slub-dresden.de
+
+.. code-block:: bash
+
    slubfind query "manfred bonitz"
 
 Python Usage Example
@@ -205,5 +229,17 @@ Python Usage Example
    slub_jsonld = slub_find.jsonld_document("0-1132486122")
    # retrieve JSON-LD data (query view)
    slub_jsonld_q = slub_find.jsonld_search("manfred bonitz")
-   # retrieve holding status (detail view)
+   # retrieve access links, references (detail view)
    slub_hs = slub_find.holding_status_document("0-1132486122")
+   # retrieve availability status and location (detail view)
+   slub_hsi = slub_find.holding_status_index_document("0-1132486122")
+   # retrieve raw Solr response
+   slub_raw = slub_find.raw_solr_search("manfred bonitz")
+   # retrieve Solr result documents only
+   slub_solr = slub_find.solr_results_search("manfred bonitz")
+   # retrieve Solr parameters for a query
+   slub_params = slub_find.solr_params("manfred bonitz")
+   # retrieve Solr request URL for a query
+   slub_req = slub_find.solr_request("manfred bonitz")
+   # retrieve TYPO3-find settings
+   slub_settings = slub_find.settings()

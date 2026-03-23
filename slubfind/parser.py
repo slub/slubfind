@@ -4,7 +4,7 @@ parser module of ``slubfind``
 from txpyfind.parser import JSONResponse, RawSolrResponse, SolrResultsResponse
 
 
-class HoldingStatus(JSONResponse):  # pylint: disable=R0903
+class HoldingStatus(JSONResponse):
     """
     Parser for holding status responses.
 
@@ -43,7 +43,7 @@ class HoldingStatus(JSONResponse):  # pylint: disable=R0903
         return self.raw.get("links") if self.ok else None
 
 
-class HoldingStatusIndex(JSONResponse):  # pylint: disable=R0903
+class HoldingStatusIndex(JSONResponse):
     """
     Parser for indexed holding status responses.
 
@@ -242,7 +242,7 @@ class AppDetailsParts:
         return []
 
 
-class AppDetails(JSONResponse):  # pylint: disable=R0903
+class AppDetails(JSONResponse):
     """
     Parser for app-format detail view responses.
 
@@ -392,7 +392,7 @@ class FincDocument:
         return self._get("author_sort")
 
     @property
-    def publishDateSort(self):
+    def publishDateSort(self):  # pylint: disable=C0103
         """Return the publishDateSort."""
         return self._get("publishDateSort")
 
@@ -494,7 +494,7 @@ class FincDocument:
         return self._get_list("publisher")
 
     @property
-    def publishDate(self):
+    def publishDate(self):  # pylint: disable=C0103
         """Return the publishDate list."""
         return self._get_list("publishDate")
 
@@ -592,7 +592,7 @@ class FincSolrResponse(RawSolrResponse):
         self.docs = [FincDocument(d, self._unescape) for d in self.docs]
 
 
-class FincSolrResults(SolrResultsResponse):
+class FincSolrResults(SolrResultsResponse):  # pylint: disable=R0903
     """SolrResultsResponse with docs wrapped as FincDocument instances."""
 
     @property
@@ -626,7 +626,7 @@ class JsonLdResponse(JSONResponse):  # pylint: disable=R0903
         self.graph = self.raw.get("@graph", []) if self.ok else []
 
 
-class JsonLdDetails(JsonLdResponse):  # pylint: disable=R0903
+class JsonLdDetails(JsonLdResponse):
     """Parser for JSON-LD detail view responses."""
 
     def __init__(self, plain):
@@ -662,4 +662,3 @@ class JsonLdDetails(JsonLdResponse):  # pylint: disable=R0903
 
 class JsonLdSearch(JsonLdResponse):  # pylint: disable=R0903
     """Parser for JSON-LD search view responses."""
-    pass

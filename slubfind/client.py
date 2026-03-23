@@ -17,17 +17,23 @@ class SlubFind(Find):
     ``SlubFind`` class from ``slubfind.client`` module
     """
 
-    EXPORT_FORMATS = [
+    QUERY_EXPORT_FORMATS = [
+        "app",
+        "json-ld",
+        "json-solr-results",
+        "raw-solr-response",
+    ]
+
+    DOCUMENT_EXPORT_FORMATS = [
         "app",
         "json-ld",
         "json-holding-status",
-        "json-all",
-        "json-solr-params",
-        "json-solr-request",
-        "json-solr-results",
         "json-holding-status-index",
-        "raw-solr-response"
     ]
+
+    EXPORT_FORMATS = sorted(
+        set(QUERY_EXPORT_FORMATS + DOCUMENT_EXPORT_FORMATS)
+    )
 
     QUERY_TYPES = [
         "default",
@@ -45,21 +51,43 @@ class SlubFind(Find):
 
     FACET_VALUES = {
         "facet_avail": [
-            "Online", "Local", "Free"
+            "Free",
+            "Local",
+            "Online"
         ],
         "format_de14": [
-            "Article, E-Article", "Audio", "Book, E-Book", "Braille",
-            "Collection", "Electronic Resource",
+            "Article, E-Article",
+            "Audio",
+            "Book, E-Book",
+            "Braille",
+            "Collection",
+            "Electronic Resource",
             "Electronic Resource (Data Carrier)",
             "Electronic Resource (Remote Access)",
-            "Journal, E-Journal", "Kit", "Manuscript", "Map",
-            "Microform", "Musical Score", "Norm", "Standard",
-            "Physical Object", "Proceeding", "Software", "Thesis",
-            "Unknown Format", "Video", "Visual Media", "Website"
+            "Journal, E-Journal",
+            "Kit",
+            "Manuscript",
+            "Map",
+            "Microform",
+            "Musical Score",
+            "Norm",
+            "Standard",
+            "Physical Object",
+            "Proceeding",
+            "Software",
+            "Thesis",
+            "Unknown Format",
+            "Video",
+            "Visual Media",
+            "Website"
         ],
         "access_state": [
-            "open", "embargoed", "restricted", "metadata",
-            "closed", "unknown"
+            "open",
+            "embargoed",
+            "restricted",
+            "metadata",
+            "closed",
+            "unknown"
         ],
     }
 
@@ -116,7 +144,7 @@ class SlubFind(Find):
             document_id,
             type_num=None):
         """
-        fetch holding status for a document
+        fetch access links, supplementary information, and references for a document
         """
         return self.get_document(
             document_id,
@@ -166,7 +194,7 @@ class SlubFind(Find):
             document_id,
             type_num=None):
         """
-        fetch indexed holding status for a document
+        fetch availability status, shelf location, and links for a document
         """
         return self.get_document(
             document_id,
