@@ -189,6 +189,17 @@ Query with raw Solr response:
 
    slubfind query "manfred bonitz" --export-format raw-solr-response
 
+Raw Server Output
+~~~~~~~~~~~~~~~~~
+
+Use ``--no-parser`` to skip response parsing and print the raw server output.
+This is useful for inspecting the exact response or piping to other tools:
+
+.. code-block:: bash
+
+   slubfind query "manfred bonitz" --no-parser
+   slubfind document 0-1132486122 --no-parser --export-format json-holding-status
+
 Environment Variable
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -218,5 +229,17 @@ Python Usage Example
    slub_jsonld = slub_find.jsonld_document("0-1132486122")
    # retrieve JSON-LD data (query view)
    slub_jsonld_q = slub_find.jsonld_search("manfred bonitz")
-   # retrieve holding status (detail view)
+   # retrieve access links, references (detail view)
    slub_hs = slub_find.holding_status_document("0-1132486122")
+   # retrieve availability status and location (detail view)
+   slub_hsi = slub_find.holding_status_index_document("0-1132486122")
+   # retrieve raw Solr response
+   slub_raw = slub_find.raw_solr_search("manfred bonitz")
+   # retrieve Solr result documents only
+   slub_solr = slub_find.solr_results_search("manfred bonitz")
+   # retrieve Solr parameters for a query
+   slub_params = slub_find.solr_params("manfred bonitz")
+   # retrieve Solr request URL for a query
+   slub_req = slub_find.solr_request("manfred bonitz")
+   # retrieve TYPO3-find settings
+   slub_settings = slub_find.settings()

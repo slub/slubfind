@@ -7,9 +7,10 @@ import logging
 import os
 import sys
 
+from txpyfind.parser import JSONResponse
+
 from . import __version__
 from .client import SlubFind
-from txpyfind.parser import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +48,7 @@ def json_dumps(obj, pretty=False):
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
-def build_parser():
+def build_parser():  # pylint: disable=R0915
     """Build and return the argument parser."""
     parser = argparse.ArgumentParser(
         prog="slubfind",

@@ -261,6 +261,16 @@ def test_cmd_query_no_facets_non_dict(capsys):
     assert '"id"' in capsys.readouterr().out
 
 
+def test_cmd_query_no_parser(capsys):
+    result = MagicMock()
+    result.plain = '{"raw":"text"}'
+    find = MagicMock()
+    find.get_query.return_value = result
+    code = _run(["query", "--no-parser", "python"], find, capsys)
+    assert code == 0
+    assert '{"raw":"text"}' in capsys.readouterr().out
+
+
 # ---------------------------------------------------------------------------
 # cmd_document
 # ---------------------------------------------------------------------------
@@ -293,6 +303,24 @@ def test_cmd_document_show_url_none(capsys):
     find.url_document.return_value = None
     code = _run(["--show-url", "document", "0-123"], find, capsys)
     assert code == 1
+
+
+def test_cmd_document_pretty(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result({"id": "0-123"})
+    code = _run(["document", "0-123", "--pretty"], find, capsys)
+    assert code == 0
+    assert "\n" in capsys.readouterr().out
+
+
+def test_cmd_document_no_parser(capsys):
+    result = MagicMock()
+    result.plain = '{"raw":"doc"}'
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(["document", "--no-parser", "0-123"], find, capsys)
+    assert code == 0
+    assert '{"raw":"doc"}' in capsys.readouterr().out
 
 
 # ---------------------------------------------------------------------------
@@ -343,6 +371,16 @@ def test_cmd_settings_success(capsys):
     assert '"key"' in capsys.readouterr().out
 
 
+def test_cmd_settings_pretty(capsys):
+    find = MagicMock()
+    find.settings.return_value = {"key": "value"}
+    code = _run(["settings", "--pretty"], find, capsys)
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "\n" in out
+    assert '"key"' in out
+
+
 def test_cmd_settings_error(capsys):
     find = MagicMock()
     find.settings.return_value = None
@@ -360,6 +398,16 @@ def test_cmd_solr_params_success(capsys):
     code = _run(["solr-params", "python"], find, capsys)
     assert code == 0
     assert '"params"' in capsys.readouterr().out
+
+
+def test_cmd_solr_params_pretty(capsys):
+    find = MagicMock()
+    find.solr_params.return_value = {"params": {"q": "python"}}
+    code = _run(["solr-params", "--pretty", "python"], find, capsys)
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "\n" in out
+    assert '"params"' in out
 
 
 def test_cmd_solr_params_error(capsys):
