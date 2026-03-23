@@ -50,7 +50,20 @@ def build_parser():
     """Build and return the argument parser."""
     parser = argparse.ArgumentParser(
         prog="slubfind",
-        description="Query data exports from the SLUB catalog.")
+        description=(
+            "Query records and export endpoints from the SLUB catalog. "
+            "Use query for result lists, document for one record, and "
+            "scroll for complete result sets."
+        ),
+        epilog=(
+            "examples:\n"
+            "  slubfind query \"manfred bonitz\"\n"
+            "  slubfind document 0-1132486122 --export-format json-ld\n"
+            "  slubfind scroll \"open access\" --stream\n"
+            "  slubfind --show-url query --from-url "
+            "\"https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz\""
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument(
         "--version", action="version",
@@ -84,106 +97,197 @@ def build_parser():
 
     # query subcommand
     query_parser = subparsers.add_parser(
-        "query", help="search in app format")
+        "query",
+        help="search catalog records",
+        description=(
+            "Search the catalog and return one page of results. "
+            "The default export format is 'app', a compact JSON result set "
+            "used by the SLUB app and suitable for general scripting."
+        ),
+        epilog=(
+            "examples:\n"
+            "  slubfind query \"manfred bonitz\"\n"
+            "  slubfind query \"manfred bonitz\" --facet \"format_de14=Book, E-Book\"\n"
+            "  slubfind query \"manfred bonitz\" --export-format json-solr-results\n"
+            "  slubfind query --from-url "
+            "\"https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz\""
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     query_parser.add_argument("query", nargs="?", help="search query string")
     query_parser.add_argument(
-        "--from-url", help="use a SLUB catalog URL as query source")
+        "--from-url",
+        help="parse query parameters from a SLUB catalog URL instead")
     query_parser.add_argument(
         "--type", default="default", choices=SlubFind.QUERY_TYPES,
-        help="query type (default: default)")
+        help="query field to search (default: default)")
     query_parser.add_argument(
         "--facet", action="append", type=parse_facet,
-        help="facet filter as KEY=VALUE (repeatable)")
+        help="facet filter as KEY=VALUE; can be repeated")
     query_parser.add_argument(
-        "--page", type=int, default=0, help="page number")
+        "--page", type=int, default=0, help="zero-based result page number")
     query_parser.add_argument(
-        "--count", type=int, default=0, help="results per page")
+        "--count", type=int, default=0,
+        help="results per page; 0 uses the catalog default")
     query_parser.add_argument(
-        "--sort", default="", help="sort instruction")
+        "--sort", default="",
+        help="sort instruction, for example 'publishDateSort desc'")
     query_parser.add_argument(
         "--export-format",
         default="app",
         choices=SlubFind.QUERY_EXPORT_FORMATS,
-        help="export format (default: app)")
+        help=(
+            "output format: app (compact app JSON), json-ld (linked data), "
+            "json-solr-results (Solr docs only), raw-solr-response "
+            "(complete Solr response); default: app"))
     query_parser.add_argument(
         "--no-facets",
         action="store_true",
-        help="strip facet data from query output")
+        help="omit facet data from the JSON output")
 
     # document subcommand
     doc_parser = subparsers.add_parser(
-        "document", help="fetch document in app format")
-    doc_parser.add_argument("document_id", help="document identifier")
+        "document",
+        help="fetch one record by catalog ID",
+        description=(
+            "Fetch one document record by ID. The default export format is "
+            "'app', a structured detail view with record metadata, copies, "
+            "and multipart information when available."
+        ),
+        epilog=(
+            "examples:\n"
+            "  slubfind document 0-1132486122\n"
+            "  slubfind document 0-1132486122 --export-format json-ld\n"
+            "  slubfind document 0-320589099 --export-format json-holding-status\n"
+            "  slubfind document 0-1809383722 --export-format json-holding-status-index"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    doc_parser.add_argument(
+        "document_id",
+        help="catalog document identifier, for example 0-1132486122")
     doc_parser.add_argument(
         "--export-format",
         default="app",
         choices=SlubFind.DOCUMENT_EXPORT_FORMATS,
-        help="export format (default: app)")
+        help=(
+            "output format: app (detail JSON), json-ld (linked data), "
+            "json-holding-status (links and references), "
+            "json-holding-status-index (availability summary and links); "
+            "default: app"))
 
     # scroll subcommand
     scroll_parser = subparsers.add_parser(
-        "scroll", help="fetch all paginated results")
+        "scroll",
+        help="fetch all records for a query",
+        description=(
+            "Fetch the full result set by paging through the catalog until "
+            "all matching records have been retrieved. This command always "
+            "uses the raw Solr export internally."
+        ),
+        epilog=(
+            "examples:\n"
+            "  slubfind scroll \"manfred bonitz\"\n"
+            "  slubfind scroll \"manfred bonitz\" --batch 100\n"
+            "  slubfind scroll \"manfred bonitz\" --stream | jq .id"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     scroll_parser.add_argument("query", nargs="?", help="search query string")
     scroll_parser.add_argument(
-        "--from-url", help="use a SLUB catalog URL as query source")
+        "--from-url",
+        help="parse query parameters from a SLUB catalog URL instead")
     scroll_parser.add_argument(
         "--type", default="default", choices=SlubFind.QUERY_TYPES,
-        help="query type (default: default)")
+        help="query field to search (default: default)")
     scroll_parser.add_argument(
         "--facet", action="append", type=parse_facet,
-        help="facet filter as KEY=VALUE (repeatable)")
+        help="facet filter as KEY=VALUE; can be repeated")
     scroll_parser.add_argument(
         "--batch", type=int, default=20,
-        help="results per batch (default: 20)")
+        help="number of records to fetch per request (default: 20)")
     scroll_parser.add_argument(
-        "--sort", default="", help="sort instruction")
+        "--sort", default="",
+        help="sort instruction, for example 'publishDateSort desc'")
     scroll_parser.add_argument(
         "--stream", action="store_true",
-        help="output one JSON object per line (JSONL)")
+        help="print one JSON object per line instead of one JSON array")
 
     # settings subcommand
     subparsers.add_parser(
-        "settings", help="show TYPO3-find settings")
+        "settings",
+        help="show TYPO3-find settings",
+        description=(
+            "Fetch the TYPO3-find settings exposed by the catalog export "
+            "endpoint."
+        ))
 
     # solr-params subcommand
     solr_params_parser = subparsers.add_parser(
-        "solr-params", help="show Solr parameters for a query")
+        "solr-params",
+        help="show Solr parameters for a query",
+        description=(
+            "Resolve a catalog query to the parameter set sent to Solr. "
+            "Useful for debugging and comparing TYPO3-find behavior."
+        ),
+        epilog=(
+            "examples:\n"
+            "  slubfind solr-params \"manfred bonitz\"\n"
+            "  slubfind solr-params --from-url "
+            "\"https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz\""
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     solr_params_parser.add_argument(
         "query", nargs="?", help="search query string")
     solr_params_parser.add_argument(
-        "--from-url", help="use a SLUB catalog URL as query source")
+        "--from-url",
+        help="parse query parameters from a SLUB catalog URL instead")
     solr_params_parser.add_argument(
         "--type", default="default", choices=SlubFind.QUERY_TYPES,
-        help="query type (default: default)")
+        help="query field to search (default: default)")
     solr_params_parser.add_argument(
         "--facet", action="append", type=parse_facet,
-        help="facet filter as KEY=VALUE (repeatable)")
+        help="facet filter as KEY=VALUE; can be repeated")
     solr_params_parser.add_argument(
-        "--page", type=int, default=0, help="page number")
+        "--page", type=int, default=0, help="zero-based result page number")
     solr_params_parser.add_argument(
-        "--count", type=int, default=0, help="results per page")
+        "--count", type=int, default=0,
+        help="results per page; 0 uses the catalog default")
     solr_params_parser.add_argument(
-        "--sort", default="", help="sort instruction")
+        "--sort", default="",
+        help="sort instruction, for example 'publishDateSort desc'")
 
     # solr-request subcommand
     solr_request_parser = subparsers.add_parser(
-        "solr-request", help="show Solr request URL for a query")
+        "solr-request",
+        help="show the Solr request URL for a query",
+        description=(
+            "Resolve a catalog query to the Solr request URL generated by "
+            "TYPO3-find."
+        ),
+        epilog=(
+            "examples:\n"
+            "  slubfind solr-request \"manfred bonitz\"\n"
+            "  slubfind solr-request --from-url "
+            "\"https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz\""
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     solr_request_parser.add_argument(
         "query", nargs="?", help="search query string")
     solr_request_parser.add_argument(
-        "--from-url", help="use a SLUB catalog URL as query source")
+        "--from-url",
+        help="parse query parameters from a SLUB catalog URL instead")
     solr_request_parser.add_argument(
         "--type", default="default", choices=SlubFind.QUERY_TYPES,
-        help="query type (default: default)")
+        help="query field to search (default: default)")
     solr_request_parser.add_argument(
         "--facet", action="append", type=parse_facet,
-        help="facet filter as KEY=VALUE (repeatable)")
+        help="facet filter as KEY=VALUE; can be repeated")
     solr_request_parser.add_argument(
-        "--page", type=int, default=0, help="page number")
+        "--page", type=int, default=0, help="zero-based result page number")
     solr_request_parser.add_argument(
-        "--count", type=int, default=0, help="results per page")
+        "--count", type=int, default=0,
+        help="results per page; 0 uses the catalog default")
     solr_request_parser.add_argument(
-        "--sort", default="", help="sort instruction")
+        "--sort", default="",
+        help="sort instruction, for example 'publishDateSort desc'")
 
     return parser
 
