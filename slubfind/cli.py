@@ -103,7 +103,7 @@ def build_parser():
     query_parser.add_argument(
         "--export-format",
         default="app",
-        choices=SlubFind.EXPORT_FORMATS,
+        choices=SlubFind.QUERY_EXPORT_FORMATS,
         help="export format (default: app)")
     query_parser.add_argument(
         "--no-facets",
@@ -117,7 +117,7 @@ def build_parser():
     doc_parser.add_argument(
         "--export-format",
         default="app",
-        choices=SlubFind.EXPORT_FORMATS,
+        choices=SlubFind.DOCUMENT_EXPORT_FORMATS,
         help="export format (default: app)")
 
     # scroll subcommand
@@ -226,7 +226,7 @@ def resolve_from_url(find, args):
 def query_kwargs(args):
     """Build keyword arguments for query methods from parsed args."""
     facet = args.facet if args.from_url else merge_facets(args.facet)
-    kwargs = dict(qtype=args.type, facet=facet, sort=args.sort)
+    kwargs = {"qtype": args.type, "facet": facet, "sort": args.sort}
     if hasattr(args, "page"):
         kwargs["page"] = args.page
     if hasattr(args, "count"):
