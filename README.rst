@@ -3,11 +3,11 @@ slubfind
 ========
 
 ``slubfind`` is a command-line tool and Python library for querying the
-`SLUB catalog <https://katalog.slub-dresden.de>`_ — the public catalog of
-SLUB (Saxon State Library - Dresden State and University Library). It
-retrieves catalog records in multiple formats including structured app
-data, JSON-LD linked data, Solr responses, and holding/availability
-information.
+`SLUB catalog <https://katalog.slub-dresden.de>`_ — the public library
+catalog of SLUB Dresden (Saxon State Library - Dresden State and
+University Library). It retrieves catalog records in multiple formats
+including SLUBApp data, JSON-LD linked data, Solr responses, and
+holding/availability information.
 
 Under the hood, ``slubfind`` builds on `txpyfind <https://github.com/slub/txpyfind>`_,
 a generic client for `TYPO3-find <https://github.com/subugoe/typo3-find>`_ catalog

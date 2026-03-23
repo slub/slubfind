@@ -174,7 +174,7 @@ def test_cmd_query_success(capsys):
 def test_cmd_query_pretty(capsys):
     find = MagicMock()
     find.get_query.return_value = _make_result({"docs": []})
-    code = _run(["--pretty", "query", "python"], find, capsys)
+    code = _run(["query", "python", "--pretty"], find, capsys)
     assert code == 0
     assert "\n" in capsys.readouterr().out
 
