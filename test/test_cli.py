@@ -37,9 +37,9 @@ def test_json_dumps_non_ascii():
 # ---------------------------------------------------------------------------
 
 def test_parse_facet_valid():
-    key, val = parse_facet("language=ger")
+    key, val = parse_facet("language=German")
     assert key == "language"
-    assert val == "ger"
+    assert val == "German"
 
 
 def test_parse_facet_no_equals():
@@ -64,9 +64,9 @@ def test_parse_facet_invalid_facet_avail():
 
 
 def test_parse_facet_unconstrained_accepts_any():
-    key, val = parse_facet("language=ger")
+    key, val = parse_facet("language=German")
     assert key == "language"
-    assert val == "ger"
+    assert val == "German"
 
 
 def test_parse_facet_all_format_de14_values():
@@ -93,6 +93,27 @@ def test_parse_facet_invalid_access_state():
         parse_facet("access_state=invalid")
 
 
+def test_parse_facet_valid_publish_date_sort():
+    key, val = parse_facet("publishDateSort=RANGE 2000 TO 2020")
+    assert key == "publishDateSort"
+    assert val == "RANGE 2000 TO 2020"
+
+
+def test_parse_facet_valid_publish_date_sort_same_year():
+    key, val = parse_facet("publishDateSort=RANGE 2020 TO 2020")
+    assert val == "RANGE 2020 TO 2020"
+
+
+def test_parse_facet_invalid_publish_date_sort_inverted():
+    with pytest.raises(argparse.ArgumentTypeError, match="RANGE YYYY TO YYYY"):
+        parse_facet("publishDateSort=RANGE 2020 TO 2000")
+
+
+def test_parse_facet_invalid_publish_date_sort_wrong_format():
+    with pytest.raises(argparse.ArgumentTypeError, match="RANGE YYYY TO YYYY"):
+        parse_facet("publishDateSort=2000-2020")
+
+
 def test_parse_facet_value_with_equals():
     # value portion may itself contain '='
     key, val = parse_facet("language=a=b")
@@ -110,17 +131,17 @@ def test_merge_facets_empty():
 
 
 def test_merge_facets_single():
-    assert merge_facets([("language", "ger")]) == [{"language": "ger"}]
+    assert merge_facets([("language", "German")]) == [{"language": "German"}]
 
 
 def test_merge_facets_multiple():
-    result = merge_facets([("language", "ger"), ("format_de14", "Buch")])
-    assert result == [{"language": "ger"}, {"format_de14": "Buch"}]
+    result = merge_facets([("language", "German"), ("format_de14", "Buch")])
+    assert result == [{"language": "German"}, {"format_de14": "Buch"}]
 
 
 def test_merge_facets_duplicate_key():
-    result = merge_facets([("language", "ger"), ("language", "eng")])
-    assert result == [{"language": "ger"}, {"language": "eng"}]
+    result = merge_facets([("language", "German"), ("language", "English")])
+    assert result == [{"language": "German"}, {"language": "English"}]
 
 
 # ---------------------------------------------------------------------------
@@ -197,10 +218,10 @@ def test_cmd_query_error(capsys):
 def test_cmd_query_with_facet(capsys):
     find = MagicMock()
     find.get_query.return_value = _make_result({"docs": []})
-    code = _run(["query", "--facet", "language=ger", "python"], find, capsys)
+    code = _run(["query", "--facet", "language=German", "python"], find, capsys)
     assert code == 0
     _, kwargs = find.get_query.call_args
-    assert kwargs["facet"] == [{"language": "ger"}]
+    assert kwargs["facet"] == [{"language": "German"}]
 
 
 def test_cmd_query_raw_solr_response(capsys):
