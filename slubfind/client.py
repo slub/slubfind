@@ -46,10 +46,18 @@ class SlubFind(Find):
         "signatur",
         "imprint",
         "series2",
-        "provenance"
+        "provenance",
+        "rsn",
+        "ppn",
+        "oclc",
     ]
 
     FACET_VALUES = {
+        "branch_collcode": [
+            "freihand",
+            "magazin",
+            "vorort",
+        ],
         "facet_avail": [
             "Free",
             "Local",
@@ -152,7 +160,7 @@ class SlubFind(Find):
             type_num=type_num,
             parser_class=HoldingStatus)
 
-    def app_search(  # pylint: disable=R0913,R0917
+    def app_search(  # pylint: disable=too-many-arguments,too-many-positional-arguments
             self,
             query,
             qtype="default",
