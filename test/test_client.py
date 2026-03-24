@@ -1,4 +1,8 @@
+import pytest
+
 from slubfind.client import SlubFind
+
+pytestmark = pytest.mark.integration
 
 
 def test_get_document():
