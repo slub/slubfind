@@ -31,7 +31,23 @@ def parse_facet(value):
             raise argparse.ArgumentTypeError(
                 f"unknown value {val!r} for facet {key!r}, "
                 f"choose from: {', '.join(allowed)}")
+    elif key == "publishDateSort":
+        parts = val.split()
+        if not (len(parts) == 4 and parts[0] == "RANGE" and parts[2] == "TO"
+                and parts[1].isdigit() and len(parts[1]) == 4
+                and parts[3].isdigit() and len(parts[3]) == 4
+                and int(parts[1]) <= int(parts[3])):
+            raise argparse.ArgumentTypeError(
+                f"invalid value {val!r} for facet {key!r}, "
+                "expected: RANGE YYYY TO YYYY (first year <= second)")
     return key, val
+
+
+def facet_help():
+    """Build --facet help text listing valid facet keys."""
+    keys = ", ".join(SlubFind.FACETS)
+    return (f"facet filter as KEY=VALUE; can be repeated; keys: {keys}; "
+            "publishDateSort expects: RANGE YYYY TO YYYY")
 
 
 def merge_facets(facet_list):
@@ -48,7 +64,7 @@ def json_dumps(obj, pretty=False):
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
-def build_parser():  # pylint: disable=R0915
+def build_parser():  # pylint: disable=too-many-statements
     """Build and return the argument parser."""
     parser = argparse.ArgumentParser(
         prog="slubfind",
@@ -99,8 +115,8 @@ def build_parser():  # pylint: disable=R0915
         help="search catalog records",
         description=(
             "Search the catalog and return one page of results. "
-            "The default export format is 'app', a compact JSON result set "
-            "used by the SLUB app and suitable for general scripting."
+            "The default export format is 'app', compact JSON output "
+            "used by the SLUBApp and suitable for general scripting."
         ),
         epilog=(
             "examples:\n"
@@ -120,7 +136,7 @@ def build_parser():  # pylint: disable=R0915
         help="query field to search (default: default)")
     query_parser.add_argument(
         "--facet", action="append", type=parse_facet,
-        help="facet filter as KEY=VALUE; can be repeated")
+        help=facet_help())
     query_parser.add_argument(
         "--page", type=int, default=0, help="zero-based result page number")
     query_parser.add_argument(
@@ -134,7 +150,7 @@ def build_parser():  # pylint: disable=R0915
         default="app",
         choices=SlubFind.QUERY_EXPORT_FORMATS,
         help=(
-            "output format: app (compact app JSON), json-ld (linked data), "
+            "output format: app (compact JSON), json-ld (linked data), "
             "json-solr-results (Solr docs only), raw-solr-response "
             "(complete Solr response); default: app"))
     query_parser.add_argument(
@@ -176,13 +192,22 @@ def build_parser():  # pylint: disable=R0915
         choices=SlubFind.DOCUMENT_EXPORT_FORMATS,
         help=(
             "output format: app (detail JSON), json-ld (linked data), "
-            "json-holding-status (links and references), "
-            "json-holding-status-index (availability summary and links); "
+            "json-holding-status (access links, supplementary information, and references), "
+            "json-holding-status-index (availability status, shelf location, and links); "
             "default: app"))
     doc_parser.add_argument(
         "--no-parser",
         action="store_true",
         help="skip response parsing and print raw server output")
+    not_found_group = doc_parser.add_mutually_exclusive_group()
+    not_found_group.add_argument(
+        "--strict-not-found",
+        action="store_true",
+        help="return exit code 1 when a parsed document response is not found")
+    not_found_group.add_argument(
+        "--lazy-not-found",
+        action="store_true",
+        help="return exit code 0 with no output when a parsed document response is not found")
     doc_parser.add_argument(
         "--pretty",
         action="store_true",
@@ -213,7 +238,7 @@ def build_parser():  # pylint: disable=R0915
         help="query field to search (default: default)")
     scroll_parser.add_argument(
         "--facet", action="append", type=parse_facet,
-        help="facet filter as KEY=VALUE; can be repeated")
+        help=facet_help())
     scroll_parser.add_argument(
         "--batch", type=int, default=20,
         help="number of records to fetch per request (default: 20)")
@@ -262,7 +287,7 @@ def build_parser():  # pylint: disable=R0915
         help="query field to search (default: default)")
     solr_params_parser.add_argument(
         "--facet", action="append", type=parse_facet,
-        help="facet filter as KEY=VALUE; can be repeated")
+        help=facet_help())
     solr_params_parser.add_argument(
         "--page", type=int, default=0, help="zero-based result page number")
     solr_params_parser.add_argument(
@@ -301,7 +326,7 @@ def build_parser():  # pylint: disable=R0915
         help="query field to search (default: default)")
     solr_request_parser.add_argument(
         "--facet", action="append", type=parse_facet,
-        help="facet filter as KEY=VALUE; can be repeated")
+        help=facet_help())
     solr_request_parser.add_argument(
         "--page", type=int, default=0, help="zero-based result page number")
     solr_request_parser.add_argument(
@@ -361,6 +386,17 @@ def query_kwargs(args):
     return kwargs
 
 
+def is_document_not_found(result):
+    """Return True when a parsed document response indicates no match."""
+    found = getattr(result, "found", None)
+    if isinstance(found, bool):
+        return not found
+    data = result.raw if hasattr(result, "raw") else result
+    if isinstance(data, dict) and "id" in data:
+        return not isinstance(data["id"], str) or len(data["id"].strip()) == 0
+    return False
+
+
 def cmd_query(find, args):
     """Handle the query subcommand."""
     if not resolve_from_url(find, args):
@@ -397,6 +433,11 @@ def cmd_document(find, args):
     if result is None:
         print("error: document not found", file=sys.stderr)
         return 1
+    if args.strict_not_found and not args.no_parser and is_document_not_found(result):
+        print("error: document not found", file=sys.stderr)
+        return 1
+    if args.lazy_not_found and not args.no_parser and is_document_not_found(result):
+        return 0
     if args.no_parser:
         print(result.plain if hasattr(result, "plain") else result)
         return 0

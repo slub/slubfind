@@ -323,6 +323,30 @@ def test_cmd_document_no_parser(capsys):
     assert '{"raw":"doc"}' in capsys.readouterr().out
 
 
+def test_cmd_document_empty_id_default_mode(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result({"id": ""})
+    code = _run(["document", "0-123"], find, capsys)
+    assert code == 0
+    assert '"id":""' in capsys.readouterr().out
+
+
+def test_cmd_document_empty_id_strict_not_found(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result({"id": ""})
+    code = _run(["document", "0-123", "--strict-not-found"], find, capsys)
+    assert code == 1
+    assert "document not found" in capsys.readouterr().err
+
+
+def test_cmd_document_empty_id_lazy_not_found(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result({"id": ""})
+    code = _run(["document", "0-123", "--lazy-not-found"], find, capsys)
+    assert code == 0
+    assert capsys.readouterr().out == ""
+
+
 # ---------------------------------------------------------------------------
 # cmd_scroll
 # ---------------------------------------------------------------------------

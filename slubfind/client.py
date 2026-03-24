@@ -210,7 +210,7 @@ class SlubFind(Find):
             type_num=type_num,
             parser_class=HoldingStatusIndex)
 
-    def raw_solr_search(  # pylint: disable=R0913,R0917
+    def raw_solr_search(  # pylint: disable=too-many-arguments,too-many-positional-arguments
             self,
             query,
             qtype="default",
@@ -234,7 +234,7 @@ class SlubFind(Find):
             type_num=type_num,
             parser_class=parser_class or FincSolrResponse)
 
-    def solr_results_search(  # pylint: disable=R0913,R0917
+    def solr_results_search(  # pylint: disable=too-many-arguments,too-many-positional-arguments
             self,
             query,
             qtype="default",
@@ -258,7 +258,7 @@ class SlubFind(Find):
             type_num=type_num,
             parser_class=parser_class or FincSolrResults)
 
-    def jsonld_search(  # pylint: disable=R0913,R0917
+    def jsonld_search(  # pylint: disable=too-many-arguments,too-many-positional-arguments
             self,
             query,
             qtype="default",
@@ -300,7 +300,7 @@ class SlubFind(Find):
             return response["settings"]
         return None
 
-    def solr_params(  # pylint: disable=R0913,R0917
+    def solr_params(  # pylint: disable=too-many-arguments,too-many-positional-arguments
             self,
             query,
             qtype="default",
@@ -346,7 +346,7 @@ class SlubFind(Find):
                 type_num=type_num)
         return None
 
-    def solr_request(  # pylint: disable=R0913,R0917
+    def solr_request(  # pylint: disable=too-many-arguments,too-many-positional-arguments
             self,
             query,
             qtype="default",
