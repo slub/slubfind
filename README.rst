@@ -3,11 +3,10 @@ slubfind
 ========
 
 ``slubfind`` is a command-line tool and Python library for querying the
-`SLUB catalog <https://katalog.slub-dresden.de>`_ — the public library
-catalog of SLUB Dresden (Saxon State Library - Dresden State and
-University Library). It retrieves catalog records in multiple formats
-including SLUBApp data, JSON-LD linked data, Solr responses, and
-holding/availability information.
+`library catalog <https://katalog.slub-dresden.de>`_ of SLUB Dresden
+(Saxon State Library – Dresden State and University Library). It retrieves
+catalog records in multiple formats including SLUBApp data, JSON-LD linked
+data, Solr responses, and holding/availability information.
 
 Under the hood, ``slubfind`` builds on `txpyfind <https://github.com/slub/txpyfind>`_,
 a generic client for `TYPO3-find <https://github.com/subugoe/typo3-find>`_ catalog
@@ -60,6 +59,18 @@ Fetch a single document by ID:
 .. code-block:: bash
 
    slubfind document 0-1132486122
+
+Return a non-zero exit code when a document is not found:
+
+.. code-block:: bash
+
+   slubfind document 0-DOES-NOT-EXIST --strict-not-found
+
+Return no output (without failing) when a document is not found:
+
+.. code-block:: bash
+
+   slubfind document 0-DOES-NOT-EXIST --lazy-not-found
 
 Scroll
 ~~~~~~
@@ -121,7 +132,7 @@ Show Request URL
 ~~~~~~~~~~~~~~~~
 
 Use ``--show-url`` to print the request URL instead of fetching the response.
-This works with all subcommands:
+This works with ``query``, ``document``, and ``scroll``:
 
 .. code-block:: bash
 
@@ -142,12 +153,12 @@ Use ``--export-format`` to select the output format. The default is ``app``.
 
 Available formats and their supported subcommands:
 
-- ``app`` (default) — SLUBApp data (``query``, ``document``)
-- ``json-ld`` — JSON-LD linked data (``query``, ``document``)
-- ``json-solr-results`` — Solr results (``query`` only)
-- ``raw-solr-response`` — raw Solr response (``query`` only)
-- ``json-holding-status`` — access links, supplementary information, and references (``document`` only)
-- ``json-holding-status-index`` — availability status, shelf location, and links (``document`` only)
+- ``app`` (default) - SLUBApp data (``query``, ``document``)
+- ``json-ld`` - JSON-LD linked data (``query``, ``document``)
+- ``json-solr-results`` - Solr results (``query`` only)
+- ``raw-solr-response`` - raw Solr response (``query`` only)
+- ``json-holding-status`` - access links, supplementary information, and references (``document`` only)
+- ``json-holding-status-index`` - availability status, shelf location, and links (``document`` only)
 
 The ``scroll`` subcommand always uses ``raw-solr-response`` internally.
 The formats ``json-all``, ``json-solr-params``, and ``json-solr-request`` are used
@@ -212,6 +223,21 @@ Set ``SLUBFIND_URL`` to override the default base URL:
 .. code-block:: bash
 
    slubfind query "manfred bonitz"
+
+Testing
+=======
+
+Run default tests (offline/unit):
+
+.. code-block:: bash
+
+   pytest
+
+Run integration tests against the live catalog:
+
+.. code-block:: bash
+
+   pytest --override-ini addopts="" -m integration
 
 Python Usage Example
 ====================

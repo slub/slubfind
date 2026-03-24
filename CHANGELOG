@@ -1,3 +1,11 @@
+1.16.0 [2026-03-24]
+- Add query types: rsn, ppn, oclc
+- Add branch_collcode facet values: freihand, magazin, vorort
+- Add publishDateSort facet value validation (RANGE YYYY TO YYYY, first year <= second)
+- List valid facet keys in --facet CLI help; note publishDateSort format
+- Add --strict-not-found and --lazy-not-found flags for the document subcommand
+- Mark client tests as integration tests; run separately in CI
+
 1.15.0 [2026-03-23]
 - Split export format choices per subcommand (query vs document)
 - Add --no-parser CLI flag to skip response parsing and print raw server output
@@ -59,7 +67,7 @@
 - Fix CLI query/document commands ignoring --export-format
 
 1.5.1 [2026-03-19]
-- Fix merge_facets() dropping duplicate-key facets (e.g. --facet language=ger --facet language=eng)
+- Fix merge_facets() dropping duplicate-key facets (e.g. --facet language=German --facet language=English)
 - Bump txpyfind minimum version to 1.2.6
 
 1.5.0 [2026-03-19]
