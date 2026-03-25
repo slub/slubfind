@@ -477,28 +477,34 @@ def cmd_query(find, args):
 
 def cmd_document(find, args):
     """Handle the document subcommand."""
+    exit_code = 0
     if args.show_url:
         url = find.url_document(args.document_id)
         if url is None:
             print("error: could not build document URL", file=sys.stderr)
-            return 1
-        print(url)
-        return 0
+            exit_code = 1
+        else:
+            print(url)
+        return exit_code
+
     parser_class = None if args.no_parser else document_parser_class(args)
     result = find.get_document(args.document_id, parser_class=parser_class)
     if result is None:
         print("error: document not found", file=sys.stderr)
         return 1
-    if args.strict_not_found and not args.no_parser and is_document_not_found(result):
+
+    not_found = (not args.no_parser) and is_document_not_found(result)
+    if args.strict_not_found and not_found:
         print("error: document not found", file=sys.stderr)
         return 1
-    if args.lazy_not_found and not args.no_parser and is_document_not_found(result):
+    if args.lazy_not_found and not_found:
         return 0
+
     if args.no_parser:
         print(result.plain if hasattr(result, "plain") else result)
-        return 0
-    data = result.raw if hasattr(result, "raw") else result
-    print(json_dumps(data, pretty=args.pretty))
+    else:
+        data = result.raw if hasattr(result, "raw") else result
+        print(json_dumps(data, pretty=args.pretty))
     return 0
 
 
