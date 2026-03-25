@@ -51,6 +51,8 @@ With a facet filter and pagination:
 
    slubfind query "manfred bonitz" --facet "format_de14=Book, E-Book" --page 1 --count 10
 
+``--page`` and ``--count`` must be non-negative integers (``>= 0``).
+
 Document
 ~~~~~~~~
 
@@ -80,6 +82,8 @@ Fetch all results for a query:
 .. code-block:: bash
 
    slubfind scroll "manfred bonitz" --batch 10
+
+``--batch`` must be a positive integer (``> 0``).
 
 Stream results as JSONL (one JSON object per line), useful for piping:
 
@@ -223,6 +227,8 @@ Set ``SLUBFIND_URL`` to override the default base URL:
 .. code-block:: bash
 
    slubfind query "manfred bonitz"
+
+Global option ``--export-page`` must be a positive integer (``> 0``).
 
 Testing
 =======

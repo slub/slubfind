@@ -11,6 +11,7 @@ from txpyfind.parser import JSONResponse
 
 from . import __version__
 from .client import SlubFind
+from .parser import AppDetails, HoldingStatus, HoldingStatusIndex, JsonLdDetails
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +58,32 @@ def merge_facets(facet_list):
     return [{k: v} for k, v in facet_list]
 
 
+def parse_non_negative_int(value):
+    """Parse an integer value that must be >= 0."""
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            f"expected integer value, got: {value!r}") from exc
+    if number < 0:
+        raise argparse.ArgumentTypeError(
+            f"value must be >= 0, got: {number}")
+    return number
+
+
+def parse_positive_int(value):
+    """Parse an integer value that must be > 0."""
+    try:
+        number = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            f"expected integer value, got: {value!r}") from exc
+    if number <= 0:
+        raise argparse.ArgumentTypeError(
+            f"value must be > 0, got: {number}")
+    return number
+
+
 def json_dumps(obj, pretty=False):
     """Serialize object to JSON string."""
     if pretty:
@@ -95,9 +122,9 @@ def build_parser():  # pylint: disable=too-many-statements
              " default: https://katalog.slub-dresden.de)")
     parser.add_argument(
         "--export-page",
-        type=int,
+        type=parse_positive_int,
         default=1369315142,
-        help="export page type number (default: 1369315142)")
+        help="export page type number; must be > 0 (default: 1369315142)")
     parser.add_argument(
         "--show-url",
         action="store_true",
@@ -138,10 +165,15 @@ def build_parser():  # pylint: disable=too-many-statements
         "--facet", action="append", type=parse_facet,
         help=facet_help())
     query_parser.add_argument(
-        "--page", type=int, default=0, help="zero-based result page number")
+        "--page",
+        type=parse_non_negative_int,
+        default=0,
+        help="zero-based result page number (must be >= 0)")
     query_parser.add_argument(
-        "--count", type=int, default=0,
-        help="results per page; 0 uses the catalog default")
+        "--count",
+        type=parse_non_negative_int,
+        default=0,
+        help="results per page; must be >= 0 (0 uses catalog default)")
     query_parser.add_argument(
         "--sort", default="",
         help="sort instruction, for example 'publishDateSort desc'")
@@ -240,8 +272,10 @@ def build_parser():  # pylint: disable=too-many-statements
         "--facet", action="append", type=parse_facet,
         help=facet_help())
     scroll_parser.add_argument(
-        "--batch", type=int, default=20,
-        help="number of records to fetch per request (default: 20)")
+        "--batch",
+        type=parse_positive_int,
+        default=20,
+        help="number of records to fetch per request; must be > 0 (default: 20)")
     scroll_parser.add_argument(
         "--sort", default="",
         help="sort instruction, for example 'publishDateSort desc'")
@@ -289,10 +323,15 @@ def build_parser():  # pylint: disable=too-many-statements
         "--facet", action="append", type=parse_facet,
         help=facet_help())
     solr_params_parser.add_argument(
-        "--page", type=int, default=0, help="zero-based result page number")
+        "--page",
+        type=parse_non_negative_int,
+        default=0,
+        help="zero-based result page number (must be >= 0)")
     solr_params_parser.add_argument(
-        "--count", type=int, default=0,
-        help="results per page; 0 uses the catalog default")
+        "--count",
+        type=parse_non_negative_int,
+        default=0,
+        help="results per page; must be >= 0 (0 uses catalog default)")
     solr_params_parser.add_argument(
         "--sort", default="",
         help="sort instruction, for example 'publishDateSort desc'")
@@ -328,10 +367,15 @@ def build_parser():  # pylint: disable=too-many-statements
         "--facet", action="append", type=parse_facet,
         help=facet_help())
     solr_request_parser.add_argument(
-        "--page", type=int, default=0, help="zero-based result page number")
+        "--page",
+        type=parse_non_negative_int,
+        default=0,
+        help="zero-based result page number (must be >= 0)")
     solr_request_parser.add_argument(
-        "--count", type=int, default=0,
-        help="results per page; 0 uses the catalog default")
+        "--count",
+        type=parse_non_negative_int,
+        default=0,
+        help="results per page; must be >= 0 (0 uses catalog default)")
     solr_request_parser.add_argument(
         "--sort", default="",
         help="sort instruction, for example 'publishDateSort desc'")
@@ -397,6 +441,17 @@ def is_document_not_found(result):
     return False
 
 
+def document_parser_class(args):
+    """Return parser class for the document command based on export format."""
+    parser_by_format = {
+        "app": AppDetails,
+        "json-ld": JsonLdDetails,
+        "json-holding-status": HoldingStatus,
+        "json-holding-status-index": HoldingStatusIndex,
+    }
+    return parser_by_format.get(args.export_format, JSONResponse)
+
+
 def cmd_query(find, args):
     """Handle the query subcommand."""
     if not resolve_from_url(find, args):
@@ -429,7 +484,8 @@ def cmd_document(find, args):
             return 1
         print(url)
         return 0
-    result = find.get_document(args.document_id)
+    parser_class = None if args.no_parser else document_parser_class(args)
+    result = find.get_document(args.document_id, parser_class=parser_class)
     if result is None:
         print("error: document not found", file=sys.stderr)
         return 1
