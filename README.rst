@@ -52,6 +52,8 @@ With a facet filter and pagination:
    slubfind query "manfred bonitz" --facet "format_de14=Book, E-Book" --page 1 --count 10
 
 ``--page`` and ``--count`` must be non-negative integers (``>= 0``).
+For ``--page``, passing ``0`` omits an explicit page parameter and uses the
+catalog default page.
 
 Exclude facet data from query output:
 

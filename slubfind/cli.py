@@ -168,12 +168,12 @@ def build_parser():  # pylint: disable=too-many-statements
         "--page",
         type=parse_non_negative_int,
         default=0,
-        help="zero-based result page number (must be >= 0)")
+        help="result page parameter (must be >= 0; 0 uses catalog default page)")
     query_parser.add_argument(
         "--count",
         type=parse_non_negative_int,
         default=0,
-        help="results per page; must be >= 0 (0 uses catalog default)")
+        help="results per page; must be >= 0 (0 uses catalog default; max 1000)")
     query_parser.add_argument(
         "--sort", default="",
         help="sort instruction, for example 'publishDateSort desc'")
@@ -326,12 +326,12 @@ def build_parser():  # pylint: disable=too-many-statements
         "--page",
         type=parse_non_negative_int,
         default=0,
-        help="zero-based result page number (must be >= 0)")
+        help="result page parameter (must be >= 0; 0 uses catalog default page)")
     solr_params_parser.add_argument(
         "--count",
         type=parse_non_negative_int,
         default=0,
-        help="results per page; must be >= 0 (0 uses catalog default)")
+        help="results per page; must be >= 0 (0 uses catalog default; max 1000)")
     solr_params_parser.add_argument(
         "--sort", default="",
         help="sort instruction, for example 'publishDateSort desc'")
@@ -370,12 +370,12 @@ def build_parser():  # pylint: disable=too-many-statements
         "--page",
         type=parse_non_negative_int,
         default=0,
-        help="zero-based result page number (must be >= 0)")
+        help="result page parameter (must be >= 0; 0 uses catalog default page)")
     solr_request_parser.add_argument(
         "--count",
         type=parse_non_negative_int,
         default=0,
-        help="results per page; must be >= 0 (0 uses catalog default)")
+        help="results per page; must be >= 0 (0 uses catalog default; max 1000)")
     solr_request_parser.add_argument(
         "--sort", default="",
         help="sort instruction, for example 'publishDateSort desc'")
