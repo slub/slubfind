@@ -96,6 +96,16 @@ def test_parse_facet_invalid_access_state():
         parse_facet("access_state=invalid")
 
 
+def test_parse_facet_closed_access_state_rejected():
+    with pytest.raises(argparse.ArgumentTypeError, match="unknown value"):
+        parse_facet("access_state=closed")
+
+
+def test_parse_facet_music_heading_browse_rejected():
+    with pytest.raises(argparse.ArgumentTypeError, match="unknown facet key"):
+        parse_facet("music_heading_browse=value")
+
+
 def test_parse_facet_valid_publish_date_sort():
     key, val = parse_facet("publishDateSort=RANGE 2000 TO 2020")
     assert key == "publishDateSort"
@@ -448,6 +458,80 @@ def test_cmd_document_jsonld_lazy_not_found_uses_found_flag(capsys):
     assert capsys.readouterr().out == ""
 
 
+def test_cmd_document_holding_status_strict_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {
+        "access": [],
+        "additional_information": [],
+        "references": [],
+        "links": [],
+    }
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status",
+         "--strict-not-found"],
+        find, capsys)
+    assert code == 1
+    assert "document not found" in capsys.readouterr().err
+
+
+def test_cmd_document_holding_status_lazy_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {
+        "access": [],
+        "additional_information": [],
+        "references": [],
+        "links": [],
+    }
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status",
+         "--lazy-not-found"],
+        find, capsys)
+    assert code == 0
+    assert capsys.readouterr().out == ""
+
+
+def test_cmd_document_holding_status_index_strict_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {
+        "status": 0,
+        "location": "",
+        "links": {"isil": [], "resource": [], "related": [], "count": 0},
+    }
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status-index",
+         "--strict-not-found"],
+        find, capsys)
+    assert code == 1
+    assert "document not found" in capsys.readouterr().err
+
+
+def test_cmd_document_holding_status_index_lazy_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {
+        "status": 0,
+        "location": "",
+        "links": {"isil": [], "resource": [], "related": [], "count": 0},
+    }
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status-index",
+         "--lazy-not-found"],
+        find, capsys)
+    assert code == 0
+    assert capsys.readouterr().out == ""
+
+
 # ---------------------------------------------------------------------------
 # cmd_scroll
 # ---------------------------------------------------------------------------
@@ -611,6 +695,34 @@ def test_query_negative_count_rejected(capsys):
     assert "value must be >= 0" in capsys.readouterr().err
 
 
+def test_query_zero_page_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["query", "--page", "0", "python"], find, capsys)
+    assert code == 0
+
+
+def test_query_zero_count_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["query", "--count", "0", "python"], find, capsys)
+    assert code == 0
+
+
+def test_query_positive_page_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["query", "--page", "1", "python"], find, capsys)
+    assert code == 0
+
+
+def test_query_positive_count_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["query", "--count", "10", "python"], find, capsys)
+    assert code == 0
+
+
 def test_scroll_zero_batch_rejected(capsys):
     find = MagicMock()
     code = _run(["scroll", "--batch", "0", "python"], find, capsys)
@@ -625,6 +737,13 @@ def test_scroll_negative_batch_rejected(capsys):
     assert "value must be > 0" in capsys.readouterr().err
 
 
+def test_scroll_positive_batch_accepted(capsys):
+    find = MagicMock()
+    find.scroll_get_query.return_value = [{"id": "1"}]
+    code = _run(["scroll", "--batch", "1", "python"], find, capsys)
+    assert code == 0
+
+
 def test_export_page_zero_rejected(capsys):
     find = MagicMock()
     code = _run(["--export-page", "0", "query", "python"], find, capsys)
@@ -637,6 +756,13 @@ def test_export_page_negative_rejected(capsys):
     code = _run(["--export-page", "-1", "query", "python"], find, capsys)
     assert code == 2
     assert "value must be > 0" in capsys.readouterr().err
+
+
+def test_export_page_positive_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["--export-page", "1", "query", "python"], find, capsys)
+    assert code == 0
 
 
 def test_scroll_from_url(capsys):
