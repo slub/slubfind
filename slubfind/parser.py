@@ -21,6 +21,10 @@ class HoldingStatus(JSONResponse):
     def __init__(self, plain):
         super().__init__(plain)
         self.ok = isinstance(self.raw, dict)
+        self.found = self.ok and any(
+            key in self.raw
+            for key in ("access", "additional_information", "references", "links")
+        )
 
     @property
     def access(self):
@@ -59,6 +63,10 @@ class HoldingStatusIndex(JSONResponse):
     def __init__(self, plain):
         super().__init__(plain)
         self.ok = isinstance(self.raw, dict)
+        self.found = self.ok and any(
+            key in self.raw
+            for key in ("status", "location", "links")
+        )
 
     @property
     def status(self):
