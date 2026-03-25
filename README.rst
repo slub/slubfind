@@ -53,6 +53,12 @@ With a facet filter and pagination:
 
 ``--page`` and ``--count`` must be non-negative integers (``>= 0``).
 
+Exclude facet data from query output:
+
+.. code-block:: bash
+
+   slubfind query "manfred bonitz" --no-facets
+
 Document
 ~~~~~~~~
 
@@ -213,6 +219,9 @@ This is useful for inspecting the exact response or piping to other tools:
 .. code-block:: bash
 
    slubfind query "manfred bonitz" --no-parser
+
+.. code-block:: bash
+
    slubfind document 0-1132486122 --no-parser --export-format json-holding-status
 
 Environment Variable
@@ -227,8 +236,6 @@ Set ``SLUBFIND_URL`` to override the default base URL:
 .. code-block:: bash
 
    slubfind query "manfred bonitz"
-
-Global option ``--export-page`` must be a positive integer (``> 0``).
 
 Testing
 =======
