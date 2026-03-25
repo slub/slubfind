@@ -22,7 +22,7 @@ class HoldingStatus(JSONResponse):
         super().__init__(plain)
         self.ok = isinstance(self.raw, dict)
         self.found = self.ok and any(
-            key in self.raw
+            key in self.raw and self.raw[key]
             for key in ("access", "additional_information", "references", "links")
         )
 
@@ -64,7 +64,7 @@ class HoldingStatusIndex(JSONResponse):
         super().__init__(plain)
         self.ok = isinstance(self.raw, dict)
         self.found = self.ok and any(
-            key in self.raw
+            key in self.raw and self.raw[key]
             for key in ("status", "location", "links")
         )
 
@@ -605,6 +605,7 @@ class FincSolrResults(SolrResultsResponse):  # pylint: disable=R0903
 
     @property
     def docs(self):
+        """Return docs wrapped as FincDocument instances."""
         return [FincDocument(d, self._unescape) for d in super().docs]
 
 
