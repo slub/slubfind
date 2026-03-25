@@ -1,17 +1,20 @@
+"""CLI tests for slubfind."""
+
 import argparse
-import io
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from slubfind.cli import (
-    build_parser,
     json_dumps,
     main,
     merge_facets,
     parse_facet,
 )
+from slubfind.client import SlubFind
 from slubfind.parser import AppDetails, HoldingStatus, HoldingStatusIndex, JsonLdDetails
 
+# pylint: disable=missing-function-docstring
 
 # ---------------------------------------------------------------------------
 # json_dumps
@@ -71,7 +74,6 @@ def test_parse_facet_unconstrained_accepts_any():
 
 
 def test_parse_facet_all_format_de14_values():
-    from slubfind.client import SlubFind
     for val in SlubFind.FACET_VALUES["format_de14"]:
         key, v = parse_facet(f"format_de14={val}")
         assert key == "format_de14"
@@ -101,7 +103,7 @@ def test_parse_facet_valid_publish_date_sort():
 
 
 def test_parse_facet_valid_publish_date_sort_same_year():
-    key, val = parse_facet("publishDateSort=RANGE 2020 TO 2020")
+    _, val = parse_facet("publishDateSort=RANGE 2020 TO 2020")
     assert val == "RANGE 2020 TO 2020"
 
 
@@ -173,7 +175,7 @@ def _mock_url_parser(is_ok=True):
     return p
 
 
-def _run(argv, find_mock, capsys):
+def _run(argv, find_mock, _capsys):
     """Run main(), injecting find_mock via make_find patch. Returns exit code."""
     with patch("slubfind.cli.make_find", return_value=find_mock):
         with pytest.raises(SystemExit) as exc_info:

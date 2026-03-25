@@ -1,5 +1,8 @@
+"""Parser tests for slubfind."""
+
+import html
 import json
-import pytest
+
 from txpyfind.parser import RawSolrResponse, SolrResultsResponse
 from slubfind.parser import (
     AppDetails, AppDetailsCopy, AppDetailsParts, AppDetailsRecord,
@@ -8,6 +11,7 @@ from slubfind.parser import (
     JsonLdResponse, JsonLdDetails, JsonLdSearch
 )
 
+# pylint: disable=missing-function-docstring
 
 def _make(cls, data):
     """Build a parser instance from a Python object (serialised to JSON)."""
@@ -45,7 +49,6 @@ def test_app_details_record_properties():
 
 
 def test_app_details_record_unescape():
-    import html
     rec = AppDetailsRecord(
         {"title": "M&uuml;nchen &amp; Berlin"},
         html.unescape)
@@ -687,7 +690,6 @@ def test_finc_document_missing_keys():
 
 
 def test_finc_document_unescape():
-    import html
     doc = FincDocument(
         {"title": "M&uuml;nchen &amp; Berlin",
          "author": ["M&uuml;ller"]},
