@@ -1,3 +1,8 @@
+1.18.0 [2026-03-26]
+- Refactor shared CLI arguments into reusable helper functions
+- Add --lazy-parse-fail flag to query and document subcommands
+- Simplify cmd_document return flow
+
 1.17.0 [2026-03-26]
 - Fix facet list: remove phantom "closed" access_state value and stale music_heading_browse facet
 - Add music facets facet_937e and facet_937d with values
