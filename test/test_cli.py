@@ -1,16 +1,20 @@
+"""CLI tests for slubfind."""
+
 import argparse
-import io
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from slubfind.cli import (
-    build_parser,
     json_dumps,
     main,
     merge_facets,
     parse_facet,
 )
+from slubfind.client import SlubFind
+from slubfind.parser import AppDetails, HoldingStatus, HoldingStatusIndex, JsonLdDetails
 
+# pylint: disable=missing-function-docstring
 
 # ---------------------------------------------------------------------------
 # json_dumps
@@ -70,7 +74,6 @@ def test_parse_facet_unconstrained_accepts_any():
 
 
 def test_parse_facet_all_format_de14_values():
-    from slubfind.client import SlubFind
     for val in SlubFind.FACET_VALUES["format_de14"]:
         key, v = parse_facet(f"format_de14={val}")
         assert key == "format_de14"
@@ -93,6 +96,16 @@ def test_parse_facet_invalid_access_state():
         parse_facet("access_state=invalid")
 
 
+def test_parse_facet_closed_access_state_rejected():
+    with pytest.raises(argparse.ArgumentTypeError, match="unknown value"):
+        parse_facet("access_state=closed")
+
+
+def test_parse_facet_music_heading_browse_rejected():
+    with pytest.raises(argparse.ArgumentTypeError, match="unknown facet key"):
+        parse_facet("music_heading_browse=value")
+
+
 def test_parse_facet_valid_publish_date_sort():
     key, val = parse_facet("publishDateSort=RANGE 2000 TO 2020")
     assert key == "publishDateSort"
@@ -100,7 +113,7 @@ def test_parse_facet_valid_publish_date_sort():
 
 
 def test_parse_facet_valid_publish_date_sort_same_year():
-    key, val = parse_facet("publishDateSort=RANGE 2020 TO 2020")
+    _, val = parse_facet("publishDateSort=RANGE 2020 TO 2020")
     assert val == "RANGE 2020 TO 2020"
 
 
@@ -172,7 +185,7 @@ def _mock_url_parser(is_ok=True):
     return p
 
 
-def _run(argv, find_mock, capsys):
+def _run(argv, find_mock, _capsys):
     """Run main(), injecting find_mock via make_find patch. Returns exit code."""
     with patch("slubfind.cli.make_find", return_value=find_mock):
         with pytest.raises(SystemExit) as exc_info:
@@ -368,6 +381,157 @@ def test_cmd_document_empty_id_lazy_not_found(capsys):
     assert capsys.readouterr().out == ""
 
 
+def test_cmd_document_uses_app_parser(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result({"id": "0-123"})
+    code = _run(["document", "0-123"], find, capsys)
+    assert code == 0
+    _, kwargs = find.get_document.call_args
+    assert kwargs["parser_class"] is AppDetails
+
+
+def test_cmd_document_uses_jsonld_parser(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result({"@context": {}, "@graph": []})
+    code = _run(["document", "0-123", "--export-format", "json-ld"], find, capsys)
+    assert code == 0
+    _, kwargs = find.get_document.call_args
+    assert kwargs["parser_class"] is JsonLdDetails
+
+
+def test_cmd_document_uses_holding_status_parser(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result({"access": []})
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status"],
+        find, capsys)
+    assert code == 0
+    _, kwargs = find.get_document.call_args
+    assert kwargs["parser_class"] is HoldingStatus
+
+
+def test_cmd_document_uses_holding_status_index_parser(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result({"status": 1})
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status-index"],
+        find, capsys)
+    assert code == 0
+    _, kwargs = find.get_document.call_args
+    assert kwargs["parser_class"] is HoldingStatusIndex
+
+
+def test_cmd_document_no_parser_passes_none_parser_class(capsys):
+    result = MagicMock()
+    result.plain = '{"raw":"doc"}'
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(["document", "--no-parser", "0-123"], find, capsys)
+    assert code == 0
+    _, kwargs = find.get_document.call_args
+    assert kwargs["parser_class"] is None
+
+
+def test_cmd_document_jsonld_strict_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {"@context": {}, "@graph": [{"@id": "https://katalog.slub-dresden.de/id"}]}
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-ld", "--strict-not-found"],
+        find, capsys)
+    assert code == 1
+    assert "document not found" in capsys.readouterr().err
+
+
+def test_cmd_document_jsonld_lazy_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {"@context": {}, "@graph": []}
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-ld", "--lazy-not-found"],
+        find, capsys)
+    assert code == 0
+    assert capsys.readouterr().out == ""
+
+
+def test_cmd_document_holding_status_strict_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {
+        "access": [],
+        "additional_information": [],
+        "references": [],
+        "links": [],
+    }
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status",
+         "--strict-not-found"],
+        find, capsys)
+    assert code == 1
+    assert "document not found" in capsys.readouterr().err
+
+
+def test_cmd_document_holding_status_lazy_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {
+        "access": [],
+        "additional_information": [],
+        "references": [],
+        "links": [],
+    }
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status",
+         "--lazy-not-found"],
+        find, capsys)
+    assert code == 0
+    assert capsys.readouterr().out == ""
+
+
+def test_cmd_document_holding_status_index_strict_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {
+        "status": 0,
+        "location": "",
+        "links": {"isil": [], "resource": [], "related": [], "count": 0},
+    }
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status-index",
+         "--strict-not-found"],
+        find, capsys)
+    assert code == 1
+    assert "document not found" in capsys.readouterr().err
+
+
+def test_cmd_document_holding_status_index_lazy_not_found_uses_found_flag(capsys):
+    result = MagicMock()
+    result.found = False
+    result.raw = {
+        "status": 0,
+        "location": "",
+        "links": {"isil": [], "resource": [], "related": [], "count": 0},
+    }
+    find = MagicMock()
+    find.get_document.return_value = result
+    code = _run(
+        ["document", "0-123", "--export-format", "json-holding-status-index",
+         "--lazy-not-found"],
+        find, capsys)
+    assert code == 0
+    assert capsys.readouterr().out == ""
+
+
 # ---------------------------------------------------------------------------
 # cmd_scroll
 # ---------------------------------------------------------------------------
@@ -515,6 +679,90 @@ def test_query_no_query_no_from_url(capsys):
     find = MagicMock()
     code = _run(["query"], find, capsys)
     assert code == 1
+
+
+def test_query_negative_page_rejected(capsys):
+    find = MagicMock()
+    code = _run(["query", "--page", "-1", "python"], find, capsys)
+    assert code == 2
+    assert "value must be >= 0" in capsys.readouterr().err
+
+
+def test_query_negative_count_rejected(capsys):
+    find = MagicMock()
+    code = _run(["query", "--count", "-1", "python"], find, capsys)
+    assert code == 2
+    assert "value must be >= 0" in capsys.readouterr().err
+
+
+def test_query_zero_page_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["query", "--page", "0", "python"], find, capsys)
+    assert code == 0
+
+
+def test_query_zero_count_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["query", "--count", "0", "python"], find, capsys)
+    assert code == 0
+
+
+def test_query_positive_page_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["query", "--page", "1", "python"], find, capsys)
+    assert code == 0
+
+
+def test_query_positive_count_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["query", "--count", "10", "python"], find, capsys)
+    assert code == 0
+
+
+def test_scroll_zero_batch_rejected(capsys):
+    find = MagicMock()
+    code = _run(["scroll", "--batch", "0", "python"], find, capsys)
+    assert code == 2
+    assert "value must be > 0" in capsys.readouterr().err
+
+
+def test_scroll_negative_batch_rejected(capsys):
+    find = MagicMock()
+    code = _run(["scroll", "--batch", "-1", "python"], find, capsys)
+    assert code == 2
+    assert "value must be > 0" in capsys.readouterr().err
+
+
+def test_scroll_positive_batch_accepted(capsys):
+    find = MagicMock()
+    find.scroll_get_query.return_value = [{"id": "1"}]
+    code = _run(["scroll", "--batch", "1", "python"], find, capsys)
+    assert code == 0
+
+
+def test_export_page_zero_rejected(capsys):
+    find = MagicMock()
+    code = _run(["--export-page", "0", "query", "python"], find, capsys)
+    assert code == 2
+    assert "value must be > 0" in capsys.readouterr().err
+
+
+def test_export_page_negative_rejected(capsys):
+    find = MagicMock()
+    code = _run(["--export-page", "-1", "query", "python"], find, capsys)
+    assert code == 2
+    assert "value must be > 0" in capsys.readouterr().err
+
+
+def test_export_page_positive_accepted(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result({"docs": []})
+    code = _run(["--export-page", "1", "query", "python"], find, capsys)
+    assert code == 0
 
 
 def test_scroll_from_url(capsys):

@@ -35,6 +35,8 @@ Command-Line Usage
 
 After installation, the ``slubfind`` command is available (also via ``python -m slubfind``).
 The base URL defaults to ``https://katalog.slub-dresden.de``.
+Use ``slubfind --help`` and ``slubfind <subcommand> --help`` for complete
+parameter and exit-code documentation.
 
 Query
 ~~~~~
@@ -51,6 +53,12 @@ With a facet filter and pagination:
 
    slubfind query "manfred bonitz" --facet "format_de14=Book, E-Book" --page 1 --count 10
 
+Exclude facet data from query output:
+
+.. code-block:: bash
+
+   slubfind query "manfred bonitz" --no-facets
+
 Document
 ~~~~~~~~
 
@@ -60,17 +68,11 @@ Fetch a single document by ID:
 
    slubfind document 0-1132486122
 
-Return a non-zero exit code when a document is not found:
+With explicit not-found handling:
 
 .. code-block:: bash
 
    slubfind document 0-DOES-NOT-EXIST --strict-not-found
-
-Return no output (without failing) when a document is not found:
-
-.. code-block:: bash
-
-   slubfind document 0-DOES-NOT-EXIST --lazy-not-found
 
 Scroll
 ~~~~~~
@@ -170,30 +172,6 @@ Fetch a document in JSON-LD format:
 
    slubfind document 0-1132486122 --export-format json-ld
 
-Search in JSON-LD format:
-
-.. code-block:: bash
-
-   slubfind query "manfred bonitz" --export-format json-ld
-
-Fetch access links and references for a document:
-
-.. code-block:: bash
-
-   slubfind document 0-320589099 --export-format json-holding-status
-
-Fetch availability status and location for a document:
-
-.. code-block:: bash
-
-   slubfind document 0-1809383722 --export-format json-holding-status-index
-
-Query with Solr results format:
-
-.. code-block:: bash
-
-   slubfind query "manfred bonitz" --export-format json-solr-results
-
 Query with raw Solr response:
 
 .. code-block:: bash
@@ -209,6 +187,9 @@ This is useful for inspecting the exact response or piping to other tools:
 .. code-block:: bash
 
    slubfind query "manfred bonitz" --no-parser
+
+.. code-block:: bash
+
    slubfind document 0-1132486122 --no-parser --export-format json-holding-status
 
 Environment Variable

@@ -1,9 +1,12 @@
+"""Integration tests for SlubFind client methods."""
+
 import pytest
 
 from slubfind.client import SlubFind
 
 pytestmark = pytest.mark.integration
 
+# pylint: disable=missing-function-docstring
 
 def test_get_document():
     slub_find = SlubFind()

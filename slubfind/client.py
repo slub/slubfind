@@ -94,8 +94,18 @@ class SlubFind(Find):
             "embargoed",
             "restricted",
             "metadata",
-            "closed",
             "unknown"
+        ],
+        "facet_937d": [
+            "Eins",
+            "Zwei",
+            "Drei",
+            "Vier",
+            "Fünf",
+            "Sechs",
+            "Sieben",
+            "Acht",
+            "Neun",
         ],
     }
 
@@ -111,7 +121,8 @@ class SlubFind(Find):
         "thema",
         "author",
         "facet_music_notation_de14",
-        "music_heading_browse",
+        "facet_937e",
+        "facet_937d",
         "provenance",
         "mega_collection"
     ]
