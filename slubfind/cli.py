@@ -444,7 +444,7 @@ def document_parser_class(args):
     return parser_by_format.get(args.export_format, JSONResponse)
 
 
-def cmd_query(find, args):
+def cmd_query(find, args):  # pylint: disable=too-many-return-statements
     """Handle the query subcommand."""
     if not resolve_from_url(find, args):
         return 1
@@ -472,17 +472,15 @@ def cmd_query(find, args):
     return 0
 
 
-def cmd_document(find, args):
+def cmd_document(find, args):  # pylint: disable=too-many-return-statements
     """Handle the document subcommand."""
-    exit_code = 0
     if args.show_url:
         url = find.url_document(args.document_id)
         if url is None:
             print("error: could not build document URL", file=sys.stderr)
-            exit_code = 1
-        else:
-            print(url)
-        return exit_code
+            return 1
+        print(url)
+        return 0
 
     parser_class = None if args.no_parser else document_parser_class(args)
     result = find.get_document(args.document_id, parser_class=parser_class)
