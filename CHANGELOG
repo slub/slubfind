@@ -1,3 +1,12 @@
+1.17.0 [2026-03-26]
+- Fix facet list: remove phantom "closed" access_state value and stale music_heading_browse facet
+- Add music facets facet_937e and facet_937d with values
+- Add found attribute to HoldingStatus and HoldingStatusIndex parsers
+- Validate CLI integer args (--page, --count, --batch, --export-page) with clear error messages
+- Pass format-specific parser class to get_document based on --export-format
+- Refactor cmd_document for clearer control flow
+- Streamline README: trim technical details, point to --help for full documentation
+
 1.16.0 [2026-03-24]
 - Add query types: rsn, ppn, oclc
 - Add branch_collcode facet values: freihand, magazin, vorort
