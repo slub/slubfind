@@ -7,6 +7,7 @@ import pytest
 
 from slubfind.cli import (
     json_dumps,
+    make_find,
     main,
     merge_facets,
     parse_facet,
@@ -297,12 +298,41 @@ def test_cmd_query_no_facets_non_dict(capsys):
 
 def test_cmd_query_no_parser(capsys):
     result = MagicMock()
-    result.plain = '{"raw":"text"}'
+    result.plain = '{"raw":'
     find = MagicMock()
     find.get_query.return_value = result
     code = _run(["query", "--no-parser", "python"], find, capsys)
     assert code == 0
-    assert '{"raw":"text"}' in capsys.readouterr().out
+    assert '{"raw":' in capsys.readouterr().out
+
+
+def test_cmd_query_parse_failure_strict(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result(None)
+    code = _run(["query", "python"], find, capsys)
+    assert code == 1
+    assert "failed to parse response" in capsys.readouterr().err
+
+
+def test_cmd_query_parse_failure_lazy(capsys):
+    find = MagicMock()
+    find.get_query.return_value = _make_result(None)
+    code = _run(["query", "--lazy-parse-fail", "python"], find, capsys)
+    assert code == 0
+    io = capsys.readouterr()
+    assert io.out == ""
+    assert io.err == ""
+
+
+def test_cmd_query_valid_json_null_is_not_parse_failure(capsys):
+    result = MagicMock()
+    result.raw = None
+    result.plain = "null"
+    find = MagicMock()
+    find.get_query.return_value = result
+    code = _run(["query", "python"], find, capsys)
+    assert code == 0
+    assert capsys.readouterr().out.strip() == "null"
 
 
 # ---------------------------------------------------------------------------
@@ -349,12 +379,30 @@ def test_cmd_document_pretty(capsys):
 
 def test_cmd_document_no_parser(capsys):
     result = MagicMock()
-    result.plain = '{"raw":"doc"}'
+    result.plain = '{"raw":'
     find = MagicMock()
     find.get_document.return_value = result
     code = _run(["document", "--no-parser", "0-123"], find, capsys)
     assert code == 0
-    assert '{"raw":"doc"}' in capsys.readouterr().out
+    assert '{"raw":' in capsys.readouterr().out
+
+
+def test_cmd_document_parse_failure_strict(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result(None)
+    code = _run(["document", "0-123"], find, capsys)
+    assert code == 1
+    assert "failed to parse response" in capsys.readouterr().err
+
+
+def test_cmd_document_parse_failure_lazy(capsys):
+    find = MagicMock()
+    find.get_document.return_value = _make_result(None)
+    code = _run(["document", "--lazy-parse-fail", "0-123"], find, capsys)
+    assert code == 0
+    io = capsys.readouterr()
+    assert io.out == ""
+    assert io.err == ""
 
 
 def test_cmd_document_empty_id_default_mode(capsys):
@@ -429,6 +477,18 @@ def test_cmd_document_no_parser_passes_none_parser_class(capsys):
     code = _run(["document", "--no-parser", "0-123"], find, capsys)
     assert code == 0
     _, kwargs = find.get_document.call_args
+    assert kwargs["parser_class"] is None
+
+
+def test_make_find_no_parser_sets_parser_class_none():
+    args = argparse.Namespace(
+        url="https://example.test",
+        export_format="app",
+        export_page=1369315142,
+        no_parser=True)
+    with patch("slubfind.cli.SlubFind") as slub_find_cls:
+        make_find(args)
+    _, kwargs = slub_find_cls.call_args
     assert kwargs["parser_class"] is None
 
 

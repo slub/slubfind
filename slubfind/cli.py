@@ -91,6 +91,53 @@ def json_dumps(obj, pretty=False):
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
+def add_query_target_argument(parser):
+    """Add shared positional query argument."""
+    parser.add_argument("query", nargs="?", help="search query string")
+
+
+def add_query_source_arguments(parser):
+    """Add --from-url query source argument."""
+    parser.add_argument(
+        "--from-url",
+        help="parse query parameters from a SLUB catalog URL instead")
+
+
+def add_query_filter_arguments(parser):
+    """Add shared query filter arguments."""
+    parser.add_argument(
+        "--type", default="default", choices=SlubFind.QUERY_TYPES,
+        help="query field to search (default: default)")
+    parser.add_argument(
+        "--facet", action="append", type=parse_facet,
+        help=facet_help())
+    parser.add_argument(
+        "--sort", default="",
+        help="sort instruction, for example 'publishDateSort desc'")
+
+
+def add_query_paging_arguments(parser):
+    """Add shared paging arguments."""
+    parser.add_argument(
+        "--page",
+        type=parse_non_negative_int,
+        default=0,
+        help="result page parameter (must be >= 0; 0 uses catalog default page)")
+    parser.add_argument(
+        "--count",
+        type=parse_non_negative_int,
+        default=0,
+        help="results per page; must be >= 0 (0 uses catalog default; max 1000)")
+
+
+def add_query_selection_arguments(parser, with_paging=False):
+    """Add all shared query-like selection arguments."""
+    add_query_source_arguments(parser)
+    add_query_filter_arguments(parser)
+    if with_paging:
+        add_query_paging_arguments(parser)
+
+
 def build_parser():  # pylint: disable=too-many-statements
     """Build and return the argument parser."""
     parser = argparse.ArgumentParser(
@@ -154,29 +201,8 @@ def build_parser():  # pylint: disable=too-many-statements
             "\"https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz\""
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    query_parser.add_argument("query", nargs="?", help="search query string")
-    query_parser.add_argument(
-        "--from-url",
-        help="parse query parameters from a SLUB catalog URL instead")
-    query_parser.add_argument(
-        "--type", default="default", choices=SlubFind.QUERY_TYPES,
-        help="query field to search (default: default)")
-    query_parser.add_argument(
-        "--facet", action="append", type=parse_facet,
-        help=facet_help())
-    query_parser.add_argument(
-        "--page",
-        type=parse_non_negative_int,
-        default=0,
-        help="result page parameter (must be >= 0; 0 uses catalog default page)")
-    query_parser.add_argument(
-        "--count",
-        type=parse_non_negative_int,
-        default=0,
-        help="results per page; must be >= 0 (0 uses catalog default; max 1000)")
-    query_parser.add_argument(
-        "--sort", default="",
-        help="sort instruction, for example 'publishDateSort desc'")
+    add_query_target_argument(query_parser)
+    add_query_selection_arguments(query_parser, with_paging=True)
     query_parser.add_argument(
         "--export-format",
         default="app",
@@ -193,6 +219,10 @@ def build_parser():  # pylint: disable=too-many-statements
         "--no-parser",
         action="store_true",
         help="skip response parsing and print raw server output")
+    query_parser.add_argument(
+        "--lazy-parse-fail",
+        action="store_true",
+        help="return exit code 0 with no output when parsed output is invalid")
     query_parser.add_argument(
         "--pretty",
         action="store_true",
@@ -231,6 +261,10 @@ def build_parser():  # pylint: disable=too-many-statements
         "--no-parser",
         action="store_true",
         help="skip response parsing and print raw server output")
+    doc_parser.add_argument(
+        "--lazy-parse-fail",
+        action="store_true",
+        help="return exit code 0 with no output when parsed output is invalid")
     not_found_group = doc_parser.add_mutually_exclusive_group()
     not_found_group.add_argument(
         "--strict-not-found",
@@ -261,24 +295,13 @@ def build_parser():  # pylint: disable=too-many-statements
             "  slubfind scroll \"manfred bonitz\" --stream | jq .id"
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    scroll_parser.add_argument("query", nargs="?", help="search query string")
-    scroll_parser.add_argument(
-        "--from-url",
-        help="parse query parameters from a SLUB catalog URL instead")
-    scroll_parser.add_argument(
-        "--type", default="default", choices=SlubFind.QUERY_TYPES,
-        help="query field to search (default: default)")
-    scroll_parser.add_argument(
-        "--facet", action="append", type=parse_facet,
-        help=facet_help())
+    add_query_target_argument(scroll_parser)
+    add_query_selection_arguments(scroll_parser)
     scroll_parser.add_argument(
         "--batch",
         type=parse_positive_int,
         default=20,
         help="number of records to fetch per request; must be > 0 (default: 20)")
-    scroll_parser.add_argument(
-        "--sort", default="",
-        help="sort instruction, for example 'publishDateSort desc'")
     scroll_parser.add_argument(
         "--stream", action="store_true",
         help="print one JSON object per line instead of one JSON array")
@@ -311,30 +334,8 @@ def build_parser():  # pylint: disable=too-many-statements
             "\"https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz\""
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    solr_params_parser.add_argument(
-        "query", nargs="?", help="search query string")
-    solr_params_parser.add_argument(
-        "--from-url",
-        help="parse query parameters from a SLUB catalog URL instead")
-    solr_params_parser.add_argument(
-        "--type", default="default", choices=SlubFind.QUERY_TYPES,
-        help="query field to search (default: default)")
-    solr_params_parser.add_argument(
-        "--facet", action="append", type=parse_facet,
-        help=facet_help())
-    solr_params_parser.add_argument(
-        "--page",
-        type=parse_non_negative_int,
-        default=0,
-        help="result page parameter (must be >= 0; 0 uses catalog default page)")
-    solr_params_parser.add_argument(
-        "--count",
-        type=parse_non_negative_int,
-        default=0,
-        help="results per page; must be >= 0 (0 uses catalog default; max 1000)")
-    solr_params_parser.add_argument(
-        "--sort", default="",
-        help="sort instruction, for example 'publishDateSort desc'")
+    add_query_target_argument(solr_params_parser)
+    add_query_selection_arguments(solr_params_parser, with_paging=True)
     solr_params_parser.add_argument(
         "--pretty",
         action="store_true",
@@ -355,30 +356,8 @@ def build_parser():  # pylint: disable=too-many-statements
             "\"https://katalog.slub-dresden.de/?tx_find_find%5Bq%5D%5Bdefault%5D=manfred+bonitz\""
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter)
-    solr_request_parser.add_argument(
-        "query", nargs="?", help="search query string")
-    solr_request_parser.add_argument(
-        "--from-url",
-        help="parse query parameters from a SLUB catalog URL instead")
-    solr_request_parser.add_argument(
-        "--type", default="default", choices=SlubFind.QUERY_TYPES,
-        help="query field to search (default: default)")
-    solr_request_parser.add_argument(
-        "--facet", action="append", type=parse_facet,
-        help=facet_help())
-    solr_request_parser.add_argument(
-        "--page",
-        type=parse_non_negative_int,
-        default=0,
-        help="result page parameter (must be >= 0; 0 uses catalog default page)")
-    solr_request_parser.add_argument(
-        "--count",
-        type=parse_non_negative_int,
-        default=0,
-        help="results per page; must be >= 0 (0 uses catalog default; max 1000)")
-    solr_request_parser.add_argument(
-        "--sort", default="",
-        help="sort instruction, for example 'publishDateSort desc'")
+    add_query_target_argument(solr_request_parser)
+    add_query_selection_arguments(solr_request_parser, with_paging=True)
 
     return parser
 
@@ -441,6 +420,19 @@ def is_document_not_found(result):
     return False
 
 
+def is_parse_failure(result):
+    """Return True when parser-backed output failed to parse."""
+    if not hasattr(result, "raw") or result.raw is not None:
+        return False
+    if not hasattr(result, "plain"):
+        return True
+    try:
+        json.loads(result.plain)
+    except (TypeError, json.JSONDecodeError):
+        return True
+    return False
+
+
 def document_parser_class(args):
     """Return parser class for the document command based on export format."""
     parser_by_format = {
@@ -467,6 +459,11 @@ def cmd_query(find, args):
     if args.no_parser:
         print(result.plain if hasattr(result, "plain") else result)
         return 0
+    if is_parse_failure(result):
+        if args.lazy_parse_fail:
+            return 0
+        print("error: failed to parse response", file=sys.stderr)
+        return 1
     data = result.raw if hasattr(result, "raw") else result
     if args.no_facets and isinstance(data, dict):
         data = {k: v for k, v in data.items()
@@ -502,6 +499,11 @@ def cmd_document(find, args):
 
     if args.no_parser:
         print(result.plain if hasattr(result, "plain") else result)
+    elif is_parse_failure(result):
+        if args.lazy_parse_fail:
+            return 0
+        print("error: failed to parse response", file=sys.stderr)
+        return 1
     else:
         data = result.raw if hasattr(result, "raw") else result
         print(json_dumps(data, pretty=args.pretty))
